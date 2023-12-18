@@ -1,0 +1,40 @@
+# Object files
+*.o
+
+# Executables
+*.exe
+*.out
+*.bin
+*.sln
+*.user
+*.userprefs
+*.suo
+*.cache
+*.vshost.*
+
+# Build folders
+build/
+Debug/
+Release/
+x64/
+x86/
+
+# Visual Studio Code folder
+.vscode/
+
+# Dependency directories
+node_modules/
+
+# Optional: Include log files, database files, etc. if applicable
+*.log
+*.sql
+*.sqlite
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
