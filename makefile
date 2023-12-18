@@ -24,4 +24,8 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 clean:
 	del /Q $(OBJDIR)\\*
 
+dev: all
+	@echo Running $(TARGET)
+	@$(TARGET)
+
 .PHONY: all clean
