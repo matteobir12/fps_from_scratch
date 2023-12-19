@@ -6,7 +6,7 @@
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glUseProgram(getShaderProgram());
+    glUseProgram(getNoLightShaderProgram());
 
     glBegin(GL_TRIANGLES);
         glVertex2f(-0.5f, -0.5f);
