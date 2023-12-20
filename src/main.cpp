@@ -9,11 +9,11 @@
 
 class Scene {
     private:
-        Camera& camera;
-        std::vector<GameObject> objects;
+        Camera* camera;
+        std::vector<GameObject*> objects;
 
     public:
-        Scene(Camera& camera, const std::vector<GameObject>& objects) : camera(camera), objects(objects) {}
+        Scene(Camera* camera, const std::vector<GameObject*>& objects) : camera(camera), objects(objects) {}
 
         void update() {
             GLenum err;
@@ -23,13 +23,10 @@ class Scene {
         }
 
         void render() {
-            for (GameObject& object : objects) {
+            for (GameObject*& object : objects) {
                
-                object.draw(camera.GetViewProjectionMatrix());
+                object->draw(camera->GetViewProjectionMatrix());
             }
-        }
-        void translateCamera(const glm::vec3& trans){
-            camera.Move(trans);
         }
 
         static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -37,10 +34,42 @@ class Scene {
             if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
                 glfwSetWindowShouldClose(window, GLFW_TRUE);
             }
-            if (key == GLFW_KEY_LEFT){
-                myObject->translateCamera(glm::vec3(.1,0,0));
+            if (key == GLFW_KEY_W){
+                myObject->camera->Move(glm::vec3(10,0,0));
+                std::cout << "mobe " << std::endl;
+            }
+            if (key == GLFW_KEY_S){
+                myObject->camera->Move(glm::vec3(-10,0,0));
+            }
+            if (key == GLFW_KEY_D){
+                myObject->camera->Move(glm::vec3(0,10,0));
+            }
+            if (key == GLFW_KEY_A){
+                myObject->camera->Move(glm::vec3(0,-10,0));
             }
 
+
+        }
+
+        double lastX = 400, lastY = 300; // Assuming 800x600 window size update for dynamic
+        bool firstMouse = true;
+
+        static void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+            Scene* myObject = static_cast<Scene*>(glfwGetWindowUserPointer(window));
+            if (myObject->firstMouse) {
+                myObject->lastX = xpos;
+                myObject->lastY = ypos;
+                myObject->firstMouse = false;
+            }
+
+            float xoffset = xpos - myObject->lastX;
+            float yoffset = myObject->lastY - ypos;
+
+            myObject->lastX = xpos;
+            myObject->lastY = ypos;
+            std::cout << xpos << " " << std::endl;
+
+            myObject->camera->Rotate(xoffset, yoffset);
         }
 };
 
@@ -101,7 +130,9 @@ int main(int argc, char** argv) {
         // top face
         2, 3, 7,
         6, 7, 2,
-
+        // bottom
+        4, 5, 1,
+        1, 0, 4,
     };
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
@@ -109,18 +140,20 @@ int main(int argc, char** argv) {
     std::string vertexShaderPath = "../shaders/no_lighting.vert";
     std::string fragmentShaderPath = "../shaders/no_lighting.frag";
     ShaderProgram* program = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
-    GameObject object = GameObject(program, glbuffs, 10, glm::vec3(-1,-1,-1),glm::vec3(1, 1, 1),glm::vec3(27, 0, 0));
-    Camera c = Camera(glm::vec3(0,-2,0),glm::vec3(-1,-1,-1),160, 800.0f/600.0f);
-    std::vector<GameObject> objs = { 
-        GameObject(program, glbuffs, 10, glm::vec3(-10,-10,-10)),
-        GameObject(program, glbuffs, 10, glm::vec3(0,-10,-10)),
-        GameObject(program, glbuffs, 10, glm::vec3(-10,0,-10)),
-        GameObject(program, glbuffs, 10, glm::vec3(-10,-10,0)),
-        GameObject(program, glbuffs, 10, glm::vec3(10,10,10)),
-        GameObject(program, glbuffs, 10, glm::vec3(0,-10,0)),
+    GameObject* object = new GameObject(program, glbuffs, 80, glm::vec3(-100,0,-100),glm::vec3(1, 1, 1),glm::vec3(27, 0, 0));
+    Camera* c = new Camera(glm::vec3(0,-2,0),glm::vec3(-1,-1,-1),160, 800.0f/600.0f);
+    std::vector<GameObject*> objs = { 
+        object,
+        // new GameObject(program, glbuffs, 10, glm::vec3(-10,-10,-10)),
+        // new GameObject(program, glbuffs, 10, glm::vec3(0,-10,-10)),
+        // new GameObject(program, glbuffs, 10, glm::vec3(-10,0,-10)),
+        // new GameObject(program, glbuffs, 10, glm::vec3(-10,-10,0)),
+        // new GameObject(program, glbuffs, 10, glm::vec3(10,10,10)),
+        // new GameObject(program, glbuffs, 10, glm::vec3(0,-10,0)),
      };
     Scene s = Scene(c,objs);
     glfwSetWindowUserPointer(window, &s);
+    glfwSetCursorPosCallback(window, Scene::mouse_callback);
     glfwSetKeyCallback(window, Scene::key_callback);
     glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
     while (!glfwWindowShouldClose(window)) {

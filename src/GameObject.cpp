@@ -8,16 +8,42 @@ bool GameObject::isInFieldOfView(const glm::mat4& viewProjectionMatrix) {
 
 GameObject::GameObject(ShaderProgram* shaderProgram, std::vector<GLuint>& buffers, unsigned int triangleCount, const glm::vec3& objectPosition, const glm::vec3& objectScale, const glm::vec3& objectRotation) :
     shader(shaderProgram), buffers(buffers), count(triangleCount)  {
-
-    model = glm::mat4();
-
+    std::cout << "s" << std::endl;
+    model = glm::mat4(1);
+    for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                std::cout << model[j][i] << " ";
+            }
+            std::cout << std::endl;
+    }
+    std::cout << "e" << std::endl;
     model = glm::translate(model, objectPosition);
-
+    for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                std::cout << model[j][i] << " ";
+            }
+            std::cout << std::endl;
+    }
+    std::cout << "e" << std::endl;
     model = glm::rotate(model, objectRotation.x, glm::vec3(1, 0, 0));
     model = glm::rotate(model, objectRotation.y, glm::vec3(0, 1, 0));
     model = glm::rotate(model, objectRotation.z, glm::vec3(0, 0, 1));
 
+    for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                std::cout << model[j][i] << " ";
+            }
+            std::cout << std::endl;
+     }
+     std::cout << "e" << std::endl;
     model = glm::scale(model, objectScale);
+    for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                std::cout << model[j][i] << " ";
+            }
+            std::cout << std::endl;
+    }
+    std::cout << "ed" << std::endl;
 }
 
 void GameObject::draw(const glm::mat4& viewProjectionMatrix) {

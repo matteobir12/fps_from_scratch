@@ -17,10 +17,10 @@ class GameObject {
 
         bool isInFieldOfView(const glm::mat4& viewProjectionMatrix);
     public:
-        GameObject(ShaderProgram* shaderProgram, std::vector<GLuint>& buffers, unsigned int triangleCount) : shader(shaderProgram), buffers(buffers), count(triangleCount) { model = glm::mat4(); }
+        GameObject(ShaderProgram* shaderProgram, std::vector<GLuint>& buffers, unsigned int triangleCount) : shader(shaderProgram), buffers(buffers), count(triangleCount) { model = glm::mat4(1); }
 
         GameObject(ShaderProgram* shaderProgram, std::vector<GLuint>& buffers, unsigned int triangleCount, const glm::vec3& objectPosition) : shader(shaderProgram), buffers(buffers), count(triangleCount) {
-            model = glm::translate(glm::mat4(), objectPosition);
+            model = glm::translate(glm::mat4(1), objectPosition);
         }
 
         GameObject(ShaderProgram* shaderProgram, std::vector<GLuint>& buffers, unsigned int triangleCount, const glm::vec3& objectPosition, const glm::vec3& objectScale, const glm::vec3& objectRotation);
