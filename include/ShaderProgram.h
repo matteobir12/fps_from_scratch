@@ -2,8 +2,19 @@
 #define SHADER_PROGRAM_H
 
 #include <GL/glew.h>
+#include <glm/ext.hpp>
 #include <string>
+#include <fstream>
+#include <filesystem>
+#include <sstream>
+#include <iostream>
 #include <unordered_map>
+#ifdef _WIN32
+#include <windows.h>
+#elif __linux__
+#include <unistd.h>
+#include <limits.h>
+#endif
 
 class ShaderProgram {
 private:
@@ -17,12 +28,12 @@ private:
 
     std::string getExecutablePath();
 
-    GLuint getNoLightShaderProgram();
+    GLuint getNoLightShaderProgram() const;
 
     GLint getUniformLocation(const std::string& name);
 
 public:
-    ShaderProgram(const char* vertexPath, const char* fragmentPath);
+    ShaderProgram(const std::string& vertexPath, const std::string& fragmentPath);
     ~ShaderProgram();
 
     void use();
@@ -30,6 +41,7 @@ public:
     GLuint getID() const;
 
     void setUniform(const std::string& name, float value);
-
+    void setUniform(const std::string& name, glm::mat4& value);
+    void setUniform(const std::string& name, glm::vec4& value);
 };
 #endif

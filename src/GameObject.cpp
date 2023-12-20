@@ -1,37 +1,49 @@
-#include <glm/glm.hpp>
-#include "ShaderProgram.h"
+#include "GameObject.h"
 
-class GameObject {
-private:
-    ShaderProgram* shader;
-    glm::vec3 position;
-    glm::vec3 scale;
-    glm::vec3 rotation;
-    // Add other necessary properties like VAO, VBO, texture IDs, etc.
+bool GameObject::isInFieldOfView(const glm::mat4& viewProjectionMatrix) {
+    glm::vec4 pos = viewProjectionMatrix * readOnlyPositionHomo();
+    return pos.x > -1.0f && pos.x < 1.0f && pos.y > -1.0f && pos.y < 1.0f;
+}
 
-    // Method to check if the object is within the field of view
-    bool isInFieldOfView(const glm::mat4& viewProjectionMatrix) {
-        // Simple example: Check if the position is within a certain range
-        // In a real application, you'd use more complex frustum culling
-        glm::vec4 pos = viewProjectionMatrix * glm::vec4(position, 1.0f);
-        return pos.x > -1.0f && pos.x < 1.0f && pos.y > -1.0f && pos.y < 1.0f;
-    }
 
-public:
-    GameObject(ShaderProgram* shaderProgram) : shader(shaderProgram) {
-        // Initialize position, scale, rotation, etc.
-    }
+GameObject::GameObject(ShaderProgram* shaderProgram, std::vector<GLuint>& buffers, unsigned int triangleCount, const glm::vec3& objectPosition, const glm::vec3& objectScale, const glm::vec3& objectRotation) :
+    shader(shaderProgram), buffers(buffers), count(triangleCount)  {
 
-    void draw(const glm::mat4& viewProjectionMatrix) {
-        if (!isInFieldOfView(viewProjectionMatrix)) {
-            return; // Skip drawing if not in FOV
+    model = glm::mat4();
+
+    model = glm::translate(model, objectPosition);
+
+    model = glm::rotate(model, objectRotation.x, glm::vec3(1, 0, 0));
+    model = glm::rotate(model, objectRotation.y, glm::vec3(0, 1, 0));
+    model = glm::rotate(model, objectRotation.z, glm::vec3(0, 0, 1));
+
+    model = glm::scale(model, objectScale);
+}
+
+void GameObject::draw(const glm::mat4& viewProjectionMatrix) {
+
+    // if (!isInFieldOfView(viewProjectionMatrix)) return;
+    shader->use();
+    glBindVertexArray(buffers[0]);
+    // Set uniforms (like model matrix, view-projection matrix, etc.)
+    
+    glm::mat4 mvp = model * viewProjectionMatrix;
+    shader->setUniform("uMat", mvp);
+    glm::vec4 color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    shader->setUniform("u_color", color);
+
+    // bind textures, etc.
+    if (buffers[2]){
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2]);
+        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);
+        for (GLenum error = glGetError(); error; error = glGetError()) {
+            std::cerr << "OpenGL Error (" << error << "): " << std::endl;
         }
-
-        shader->use();
-        // Set uniforms (like model matrix, view-projection matrix, etc.)
-        // Bind VAO, textures, etc.
-        // Perform draw call (glDrawArrays or glDrawElements)
+    } else {
+        std::cout << "stinky";
     }
+    
+    // add support for draw arrays
+}
 
-    // Setters and getters for position, scale, rotation, etc.
-};
+// Setters and getters for position, scale, rotation, etc.

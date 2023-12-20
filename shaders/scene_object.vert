@@ -1,4 +1,4 @@
-#version 330 es
+#version 330 core
 
 in vec4 aPosition;
 in vec3 aNormal;
