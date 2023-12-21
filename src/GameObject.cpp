@@ -1,59 +1,32 @@
 #include "GameObject.h"
 
-bool GameObject::isInFieldOfView(const glm::mat4& viewProjectionMatrix) {
-    glm::vec4 pos = viewProjectionMatrix * readOnlyPositionHomo();
+bool GameObject::isInFieldOfView(const glm::mat4& projectionViewMatrix) {
+    glm::vec4 pos = projectionViewMatrix * readOnlyPositionHomo();
     return pos.x > -1.0f && pos.x < 1.0f && pos.y > -1.0f && pos.y < 1.0f;
 }
 
 
 GameObject::GameObject(ShaderProgram* shaderProgram, std::vector<GLuint>& buffers, unsigned int triangleCount, const glm::vec3& objectPosition, const glm::vec3& objectScale, const glm::vec3& objectRotation) :
     shader(shaderProgram), buffers(buffers), count(triangleCount)  {
-    std::cout << "s" << std::endl;
     model = glm::mat4(1);
-    for (int i = 0; i < 4; ++i) {
-            for (int j = 0; j < 4; ++j) {
-                std::cout << model[j][i] << " ";
-            }
-            std::cout << std::endl;
-    }
-    std::cout << "e" << std::endl;
-    model = glm::translate(model, objectPosition);
-    for (int i = 0; i < 4; ++i) {
-            for (int j = 0; j < 4; ++j) {
-                std::cout << model[j][i] << " ";
-            }
-            std::cout << std::endl;
-    }
-    std::cout << "e" << std::endl;
     model = glm::rotate(model, objectRotation.x, glm::vec3(1, 0, 0));
     model = glm::rotate(model, objectRotation.y, glm::vec3(0, 1, 0));
     model = glm::rotate(model, objectRotation.z, glm::vec3(0, 0, 1));
 
-    for (int i = 0; i < 4; ++i) {
-            for (int j = 0; j < 4; ++j) {
-                std::cout << model[j][i] << " ";
-            }
-            std::cout << std::endl;
-     }
-     std::cout << "e" << std::endl;
     model = glm::scale(model, objectScale);
-    for (int i = 0; i < 4; ++i) {
-            for (int j = 0; j < 4; ++j) {
-                std::cout << model[j][i] << " ";
-            }
-            std::cout << std::endl;
-    }
-    std::cout << "ed" << std::endl;
+
+
+    model = glm::translate(model,objectPosition);
 }
 
-void GameObject::draw(const glm::mat4& viewProjectionMatrix) {
+void GameObject::draw(const glm::mat4& projectionViewMatrix) {
 
-    // if (!isInFieldOfView(viewProjectionMatrix)) return;
+    // if (!isInFieldOfView(projectionViewMatrix)) return;
     shader->use();
     glBindVertexArray(buffers[0]);
     // Set uniforms (like model matrix, view-projection matrix, etc.)
     
-    glm::mat4 mvp = model * viewProjectionMatrix;
+    glm::mat4 mvp = projectionViewMatrix * model;
     shader->setUniform("uMat", mvp);
     glm::vec4 color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
     shader->setUniform("u_color", color);

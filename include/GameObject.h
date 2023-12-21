@@ -1,3 +1,6 @@
+#ifndef GAME_OBJECT_H
+#define GAME_OBJECT_H
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <iostream>
@@ -15,7 +18,7 @@ class GameObject {
         std::vector<GLuint> buffers;
         unsigned int count;
 
-        bool isInFieldOfView(const glm::mat4& viewProjectionMatrix);
+        bool isInFieldOfView(const glm::mat4& projectionViewMatrix);
     public:
         GameObject(ShaderProgram* shaderProgram, std::vector<GLuint>& buffers, unsigned int triangleCount) : shader(shaderProgram), buffers(buffers), count(triangleCount) { model = glm::mat4(1); }
 
@@ -27,6 +30,8 @@ class GameObject {
 
         const glm::vec4& readOnlyPositionHomo() const { return model[3]; }
 
-        void draw(const glm::mat4& viewProjectionMatrix);
+        void draw(const glm::mat4& projectionViewMatrix);
 
 };
+
+#endif

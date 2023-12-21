@@ -2,46 +2,46 @@
 
 Camera::Camera(const glm::vec3& position, const glm::vec3& target, float fov, float aspectRatio)
     : position(position), target(target), fov(fov), aspectRatio(aspectRatio) {
-    UpdateViewMatrix();
-    UpdateProjectionMatrix();
+    updateViewMatrix();
+    updateProjectionMatrix();
 }
 
-void Camera::SetPosition(const glm::vec3& newPosition) {
+void Camera::setPosition(const glm::vec3& newPosition) {
     position = newPosition;
-    UpdateViewMatrix();
+    updateViewMatrix();
 }
 
-void Camera::LookAt(const glm::vec3& target) {
+void Camera::lookAt(const glm::vec3& target) {
     this->target = target;
-    UpdateViewMatrix();
+    updateViewMatrix();
 }
 
-void Camera::SetFOV(float newFOV) {
+void Camera::setFOV(float newFOV) {
     fov = newFOV;
-    UpdateProjectionMatrix();
+    updateProjectionMatrix();
 }
 
-void Camera::SetAspectRatio(float newAspectRatio) {
+void Camera::setAspectRatio(float newAspectRatio) {
     aspectRatio = newAspectRatio;
-    UpdateProjectionMatrix();
+    updateProjectionMatrix();
 }
 
-void Camera::UpdateViewMatrix() {
+void Camera::updateViewMatrix() {
     viewMatrix = glm::lookAt(position, target, glm::vec3(0.0f, 1.0f, 0.0f));
     didUpdate = true;
 }
 
-void Camera::UpdateProjectionMatrix() {
+void Camera::updateProjectionMatrix() {
     projectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, 0.1f, 1000.0f);
     didUpdate = true;
 }
 
-void Camera::Move(const glm::vec3& offset) {
-    glm::translate(viewMatrix,offset);
+void Camera::translate(const glm::vec3& offset) {
+    viewMatrix[3] = viewMatrix[0] * offset[0] + viewMatrix[1] * offset[1] + viewMatrix[2] * offset[2] + viewMatrix[3];
     didUpdate = true;
 }
 
-void Camera::Rotate(float deltaYaw, float deltaPitch) {
+void Camera::rotate(float deltaYaw, float deltaPitch) {
     glm::mat4 rotationMatrix = viewMatrix;
     glm::vec3 translation = glm::vec3(rotationMatrix[3]);
     rotationMatrix[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -57,12 +57,12 @@ void Camera::Rotate(float deltaYaw, float deltaPitch) {
     didUpdate = true;
 }
 
-const glm::mat4& Camera::GetViewProjectionMatrix(){
+const glm::mat4& Camera::getProjectionViewMatrix(){
     if (didUpdate){
-        viewProjectionMatrix = viewMatrix * projectionMatrix;
+        projectionViewMatrix = projectionMatrix * viewMatrix;
         didUpdate = false;
     }
-    return viewProjectionMatrix;
+    return projectionViewMatrix;
 }
 
 

@@ -13,7 +13,8 @@
 *.vshost.*
 
 # Build folders
-build/
+/build/*
+!/build/
 Debug/
 Release/
 x64/

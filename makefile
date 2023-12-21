@@ -1,12 +1,13 @@
 CXX = g++ 
 CXXFLAGS = -Wall -Wextra -O2
-LDLIBS = lib/libglfw3.a -lgdi32 -luser32 -lglew32 -lopengl32 
+LDLIBS = lib/libglfw3.a -lgdi32 -luser32 -lglew32 -lopengl32
 
 TARGET = build/main.exe
 OBJDIR = build
 SRCDIR = src
 INCDIR = include
 LIBDIR = lib
+BINDIR := bin
 
 # Automatically list out the source files
 SOURCES = $(wildcard $(SRCDIR)/*.cpp)
@@ -16,17 +17,22 @@ OBJECTS = $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDLIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ -L$(LIBDIR) $(LDLIBS)
 
 # Pattern rule for object files, which considers the include directory for header files
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) $(CXXFLAGS) -I$(INCDIR) -L$(LIBDIR) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -I$(INCDIR) -c $< -o $@
+
+build:
+	cp $(BINDIR)/*.dll $(OBJDIR)/
 
 clean:
-	del /Q $(OBJDIR)\\*
+	del /Q $(OBJDIR)\*.o
+	del /Q $(OBJDIR)\main.exe
+	# Optionally, delete the DLLs in the build directory as well
+	# del /Q $(OBJDIR)\*.dll
 
 dev: all
-	@echo Running $(TARGET)
 	@$(TARGET)
 
 .PHONY: all clean
