@@ -90,7 +90,6 @@ int main() { // int argc, char** argv
      };
     Scene s = Scene(c,objs);
     glfwSetWindowUserPointer(window, &s);
-    
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
             Scene* myObject = static_cast<Scene*>(glfwGetWindowUserPointer(window));
