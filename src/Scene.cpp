@@ -8,22 +8,51 @@ void Scene::update() {
 }
 
 void Scene::render() {
+    drawBackground();
     for (GameObject*& object : objects) {
         
         object->draw(camera->getProjectionViewMatrix());
     }
 }
 
+Scene::Scene(Camera* camera, const std::vector<GameObject*>& objects, ShaderProgram* backgroundProgram, GLuint backgroundTex) 
+: objects(objects), backgroundProgram(backgroundProgram), camera(camera), backgroundTex(backgroundTex) {
+    
+    GLuint backVertexBuffer;
 
-// only will need to set the tex uniform and vao once. 
+    glGenVertexArrays(1, &backgroundVao);
+    glBindVertexArray(backgroundVao);
+
+    glGenBuffers(1, &backVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, backVertexBuffer);
+
+    std::vector<float> backgroundPositions = BackgroundPositions();
+    glBufferData(GL_ARRAY_BUFFER, backgroundPositions.size() * sizeof(float), backgroundPositions.data(), GL_STATIC_DRAW);
+
+    // Can abstract
+    GLuint backaPositionLocation = glGetAttribLocation(backgroundProgram->getID(), "aPosition");
+
+    glEnableVertexAttribArray(backaPositionLocation);
+    glVertexAttribPointer(backaPositionLocation, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    backgroundProgram->setUniform("uSkybox",0);
+
+
+ 
+}
+
+
+// only will need to set vao once. 
 // can cache matrix
 // probably only need depthfn call once
 void Scene::drawBackground() {
-    if (!backgroundProgram || !BackgroundVao) return;
+    if (!backgroundProgram || !backgroundVao) return;
 
     backgroundProgram->use();
 
-    glBindVertexArray(BackgroundVao);
+    glBindVertexArray(backgroundVao);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, backgroundTex);
 
     glm::mat4 viewMatrix = glm::mat4(camera->getViewMatrix());
     viewMatrix[3][0] = 0;
@@ -34,9 +63,21 @@ void Scene::drawBackground() {
     glm::mat4 viewDirectionProjectionInverseMatrix = glm::inverse(viewDirectionProjectionMatrix);
 
     backgroundProgram->setUniform("uViewDirectionProjectionInverse", viewDirectionProjectionInverseMatrix);
-    backgroundProgram->setUniform("uSkybox",0);
+
 
     glDepthFunc(GL_LEQUAL);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+std::vector<float> Scene::BackgroundPositions() {
+        std::vector<float> a = {
+            -1, -1, 
+            1, -1, 
+            -1,  1, 
+            -1,  1,
+            1, -1,
+            1,  1,
+        };
+    return a;
 }

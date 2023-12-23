@@ -27,7 +27,8 @@ void Camera::setAspectRatio(float newAspectRatio) {
 }
 
 void Camera::updateViewMatrix() {
-    viewMatrix = glm::lookAt(position, target, glm::vec3(0.0f, 1.0f, 0.0f));
+    std::cout << "updated lookat" << std::endl;
+    viewMatrix = glm::lookAt(position, target, glm::vec3(0.0f, 0.0f, 1.0f));
     didUpdate = true;
 }
 
@@ -59,7 +60,7 @@ void Camera::rotate(float deltaYaw, float deltaPitch) {
 
 const glm::mat4& Camera::getProjectionViewMatrix(){
     if (didUpdate){
-        projectionViewMatrix = projectionMatrix * viewMatrix;
+        projectionViewMatrix = projectionMatrix * inverse(viewMatrix);
         didUpdate = false;
     }
     return projectionViewMatrix;

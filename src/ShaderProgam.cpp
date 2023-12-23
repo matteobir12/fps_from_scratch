@@ -129,6 +129,5 @@ void ShaderProgram::setUniform(const std::string& name, glm::vec4& value) {
 }
 
 ShaderProgram::~ShaderProgram() {
-    std::cout << "deleting";
     glDeleteProgram(programID);
 }

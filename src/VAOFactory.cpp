@@ -21,7 +21,6 @@ std::vector<GLuint> VAOFactory::createVAO(const std::vector<float>& vertices, co
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices->size() * sizeof(unsigned int), indices->data(), GL_STATIC_DRAW);
     }
-    std::cout << attributes.index << " " << attributes.size<< " " << attributes.type<< " " << attributes.stride<< " " << (void*)attributes.offset;
     glVertexAttribPointer(attributes.index, attributes.size, attributes.type, GL_FALSE, attributes.stride, (void*)attributes.offset);
     glEnableVertexAttribArray(attributes.index);
 

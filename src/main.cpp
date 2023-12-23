@@ -7,6 +7,7 @@
 #include "GameObject.h"
 #include "VAOFactory.h"
 #include "Scene.h"
+#include "AssetLoader.h"
 
 void GLAPIENTRY MessageCallback( GLenum source,
                                  GLenum type,
@@ -71,16 +72,30 @@ int main() { // int argc, char** argv
         4, 5, 1,
         1, 0, 4,
     };
+
+       std::vector<std::string> faces{
+        "./textures/background/pos-x.jpg",
+        "./textures/background/neg-x.jpg",
+        "./textures/background/pos-y.jpg",
+        "./textures/background/neg-y.jpg",
+        "./textures/background/pos-z.jpg",
+        "./textures/background/neg-z.jpg"
+    };
+
+    GLuint cubemapTexture = AssetLoader::createCubeMap(faces);
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
     std::vector<GLuint> glbuffs = VAOFactory::createVAO(vertices, &indices);
     std::string vertexShaderPath = "../shaders/no_lighting.vert";
     std::string fragmentShaderPath = "../shaders/no_lighting.frag";
     ShaderProgram* program = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
+    ShaderProgram* bp = new ShaderProgram("../shaders/background.vert", "../shaders/background.frag");
     GameObject* object = new GameObject(program, glbuffs, 80, glm::vec3(-10,0,-10),glm::vec3(1, 1, 1),glm::vec3(0, 0, 0));
+    GameObject* plane = new GameObject(program, glbuffs, 80, glm::vec3(0,0,-2),glm::vec3(100, 100, .1),glm::vec3(0, 0, 0));
     Camera* c = new Camera(glm::vec3(0,-2,0),glm::vec3(-1,-1,-1),FOV, 800.0f/600.0f);
     std::vector<GameObject*> objs = { 
         object,
+        plane,
         // new GameObject(program, glbuffs, 10, glm::vec3(-10,-10,-10)),
         // new GameObject(program, glbuffs, 10, glm::vec3(0,-10,-10)),
         // new GameObject(program, glbuffs, 10, glm::vec3(-10,0,-10)),
@@ -88,7 +103,7 @@ int main() { // int argc, char** argv
         // new GameObject(program, glbuffs, 10, glm::vec3(10,10,10)),
         // new GameObject(program, glbuffs, 10, glm::vec3(0,-10,0)),
      };
-    Scene s = Scene(c,objs);
+    Scene s = Scene(c,objs,bp,cubemapTexture);
     glfwSetWindowUserPointer(window, &s);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {

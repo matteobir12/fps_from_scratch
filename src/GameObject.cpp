@@ -1,5 +1,6 @@
 #include "GameObject.h"
 
+
 bool GameObject::isInFieldOfView(const glm::mat4& projectionViewMatrix) {
     glm::vec4 pos = projectionViewMatrix * readOnlyPositionHomo();
     return pos.x > -1.0f && pos.x < 1.0f && pos.y > -1.0f && pos.y < 1.0f;
@@ -44,5 +45,6 @@ void GameObject::draw(const glm::mat4& projectionViewMatrix) {
     
     // add support for draw arrays
 }
+
 
 // Setters and getters for position, scale, rotation, etc.
