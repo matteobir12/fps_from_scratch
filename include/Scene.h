@@ -39,22 +39,22 @@ class Scene {
                 glfwSetWindowShouldClose(window, GLFW_TRUE);
             }
             if (key == GLFW_KEY_W){
-                myObject->camera->translate(glm::vec3(1,0,0));
-            }
-            if (key == GLFW_KEY_S){
-                myObject->camera->translate(glm::vec3(-1,0,0));
-            }
-            if (key == GLFW_KEY_D){
-                myObject->camera->translate(glm::vec3(0,-1,0));
-            }
-            if (key == GLFW_KEY_A){
-                myObject->camera->translate(glm::vec3(0,1,0));
-            }
-            if (key == GLFW_KEY_SPACE){
                 myObject->camera->translate(glm::vec3(0,0,1));
             }
+            if (key == GLFW_KEY_S){
+                myObject->camera->translate(glm::vec3(0,0,0-1));
+            }
+            if (key == GLFW_KEY_D){
+                myObject->camera->translate(glm::vec3(1,0,0));
+            }
+            if (key == GLFW_KEY_A){
+                myObject->camera->translate(glm::vec3(-1,0,0));
+            }
+            if (key == GLFW_KEY_SPACE){
+                myObject->camera->translate(glm::vec3(0,1,0));
+            }
             if (key == GLFW_KEY_LEFT_SHIFT){
-                myObject->camera->translate(glm::vec3(0,0,-1));
+                myObject->camera->translate(glm::vec3(0,-1,0));
             }
             if (key == GLFW_KEY_P && (action == GLFW_PRESS || action == GLFW_REPEAT) && mods & GLFW_MOD_CONTROL) {
                 glm::mat4 proj = myObject->camera->getViewMatrix();

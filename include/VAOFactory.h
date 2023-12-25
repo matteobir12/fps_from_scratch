@@ -5,8 +5,11 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <iostream>
+#include <unordered_map>
 
 class VAOFactory {
+private:
+    std::unordered_map<std::string, GLint> uniformLocationCache;
 public:
     struct Attribute {
         GLuint index = 0;
@@ -19,9 +22,9 @@ public:
         Attribute(GLuint idx, GLint sz, GLenum tp, GLsizei str, size_t off);
     };
 
-    static std::vector<GLuint> createVAO(const std::vector<float>& vertices, const std::vector<unsigned int>* indices = nullptr);
-    static std::vector<GLuint> createVAO(const std::vector<float>& vertices, const Attribute& attributes, const std::vector<unsigned int>* indices = nullptr);
-    static std::vector<GLuint> createVAO(const std::vector<float>& vertices, const std::vector<float>& normals, const std::vector<unsigned int>* indices = nullptr);
+    static std::vector<GLuint> createVAO(const std::vector<float>& vertices, const char * vaoId, const std::vector<unsigned int>* indices = nullptr);
+    static std::vector<GLuint> createVAO(const std::vector<float>& vertices, const char * vaoId, const Attribute& attributes, const std::vector<unsigned int>* indices = nullptr);
+    static std::vector<GLuint> createVAO(const std::vector<float>& vertices, const char * vaoId, const std::vector<float>& normals, const std::vector<unsigned int>* indices = nullptr);
 };
 
 #endif

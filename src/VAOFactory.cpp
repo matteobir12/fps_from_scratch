@@ -3,12 +3,12 @@
 VAOFactory::Attribute::Attribute(GLuint idx, GLint sz, GLenum tp, GLsizei str, size_t off)
     : index(idx), size(sz), type(tp), stride(str), offset(off) {}
 
-std::vector<GLuint> VAOFactory::createVAO(const std::vector<float>& vertices, const std::vector<unsigned int>* indices) {
+std::vector<GLuint> VAOFactory::createVAO(const std::vector<float>& vertices, const char * vaoId, const std::vector<unsigned int>* indices) {
     Attribute tempAttribute = Attribute();
-    return createVAO(vertices, tempAttribute, indices);
+    return createVAO(vertices, vaoId, tempAttribute, indices);
 }
 
-std::vector<GLuint> VAOFactory::createVAO(const std::vector<float>& vertices, const Attribute& attributes, const std::vector<unsigned int>* indices) {
+std::vector<GLuint> VAOFactory::createVAO(const std::vector<float>& vertices, const char * vaoId, const Attribute& attributes, const std::vector<unsigned int>* indices) {
     GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -29,7 +29,7 @@ std::vector<GLuint> VAOFactory::createVAO(const std::vector<float>& vertices, co
     return std::vector<GLuint> {VAO, VBO, EBO};
 }
 
-std::vector<GLuint> VAOFactory::createVAO(const std::vector<float>& vertices, const std::vector<float>& normals, const std::vector<unsigned int>* indices) {
+std::vector<GLuint> VAOFactory::createVAO(const std::vector<float>& vertices, const char * vaoId, const std::vector<float>& normals, const std::vector<unsigned int>* indices) {
     std::vector<Attribute> attributes;
     attributes.emplace_back(0, 3, GL_FLOAT, 6 * sizeof(float), 0);
     attributes.emplace_back(1, 3, GL_FLOAT, 6 * sizeof(float), 3 * sizeof(float)); 

@@ -24,8 +24,8 @@ void GLAPIENTRY MessageCallback( GLenum source,
 
 
 int main() { // int argc, char** argv
-    int HEIGHT = 800;
-    int WIDTH = 1000;
+    int HEIGHT = 800.0f;
+    int WIDTH = 1000.0f;
     int FOV = 45;
     if (!glfwInit()) return -1;
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "My OpenGL Window", NULL, NULL);
@@ -85,23 +85,18 @@ int main() { // int argc, char** argv
     GLuint cubemapTexture = AssetLoader::createCubeMap(faces);
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
-    std::vector<GLuint> glbuffs = VAOFactory::createVAO(vertices, &indices);
+    std::string vaoid = "cube";
+    std::vector<GLuint> glbuffs = VAOFactory::createVAO(vertices, vaoid.c_str(), &indices);
     std::string vertexShaderPath = "../shaders/no_lighting.vert";
     std::string fragmentShaderPath = "../shaders/no_lighting.frag";
     ShaderProgram* program = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
     ShaderProgram* bp = new ShaderProgram("../shaders/background.vert", "../shaders/background.frag");
-    GameObject* object = new GameObject(program, glbuffs, 80, glm::vec3(-10,0,-10),glm::vec3(1, 1, 1),glm::vec3(0, 0, 0));
-    GameObject* plane = new GameObject(program, glbuffs, 80, glm::vec3(0,0,-2),glm::vec3(100, 100, .1),glm::vec3(0, 0, 0));
-    Camera* c = new Camera(glm::vec3(0,-2,0),glm::vec3(-1,-1,-1),FOV, 800.0f/600.0f);
+    GameObject* object = new GameObject(program, glbuffs, 80, glm::vec3(-10,10,-10),glm::vec3(1, 1, 1),glm::vec3(0, 0, 0));
+    GameObject* plane = new GameObject(program, glbuffs, 80, glm::vec3(0,-6,0),glm::vec3(100, .1, 100),glm::vec3(0, 0, 0));
+    Camera* c = new Camera(glm::vec3(0,-2,0),FOV, WIDTH/HEIGHT, glm::vec3(0,1,0), 0.0f, 0.0f);
     std::vector<GameObject*> objs = { 
         object,
         plane,
-        // new GameObject(program, glbuffs, 10, glm::vec3(-10,-10,-10)),
-        // new GameObject(program, glbuffs, 10, glm::vec3(0,-10,-10)),
-        // new GameObject(program, glbuffs, 10, glm::vec3(-10,0,-10)),
-        // new GameObject(program, glbuffs, 10, glm::vec3(-10,-10,0)),
-        // new GameObject(program, glbuffs, 10, glm::vec3(10,10,10)),
-        // new GameObject(program, glbuffs, 10, glm::vec3(0,-10,0)),
      };
     Scene s = Scene(c,objs,bp,cubemapTexture);
     glfwSetWindowUserPointer(window, &s);
