@@ -12,7 +12,7 @@ out vec4 outColor;
 void main() {
     if (uUseTexture) {
         vec4 texColor = texture(textureSampler, vTextCoord);
-        outColor = texColor * frag_color;
+        outColor = texColor;
     } else {
         outColor = frag_color;
     }

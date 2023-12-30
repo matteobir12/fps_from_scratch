@@ -29,7 +29,7 @@ void GameObject::draw(const glm::mat4& projectionViewMatrix) {
     
     glm::mat4 pvm = projectionViewMatrix * model;
     shader->setUniform("uMat", pvm);
-    glm::vec4 color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+    glm::vec4 color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
     shader->setUniform("u_color", color);
     // bind textures, etc.
     if (objData->useFaces){
