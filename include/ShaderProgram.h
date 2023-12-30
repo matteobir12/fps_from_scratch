@@ -32,6 +32,8 @@ private:
 
     GLint getUniformLocation(const std::string& name);
 
+    static GLuint currentlyActiveShader;
+
 public:
     ShaderProgram(const std::string& vertexPath, const std::string& fragmentPath);
     ~ShaderProgram();
@@ -41,6 +43,7 @@ public:
     GLuint getID() const;
 
     void setUniform(const std::string& name, float value);
+    void setUniform(const std::string& name, int value);
     void setUniform(const std::string& name, glm::mat4& value);
     void setUniform(const std::string& name, glm::vec4& value);
 };

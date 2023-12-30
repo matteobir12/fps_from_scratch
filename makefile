@@ -29,10 +29,12 @@ build:
 clean:
 	del /Q $(OBJDIR)\*.o
 	del /Q $(OBJDIR)\main.exe
-	# Optionally, delete the DLLs in the build directory as well
-	# del /Q $(OBJDIR)\*.dll
+# del /Q $(OBJDIR)\*.dll
 
 dev: all
+	@$(TARGET)
+
+run:
 	@$(TARGET)
 
 .PHONY: all clean

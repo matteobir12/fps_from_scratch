@@ -16,7 +16,7 @@ void Scene::render() {
 }
 
 Scene::Scene(Camera* camera, const std::vector<GameObject*>& objects, ShaderProgram* backgroundProgram, GLuint backgroundTex) 
-: objects(objects), backgroundProgram(backgroundProgram), camera(camera), backgroundTex(backgroundTex) {
+: objects(objects), backgroundProgram(backgroundProgram), backgroundTex(backgroundTex), camera(camera) {
     
     GLuint backVertexBuffer;
 

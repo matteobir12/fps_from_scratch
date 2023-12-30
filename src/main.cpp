@@ -8,6 +8,7 @@
 #include "VAOFactory.h"
 #include "Scene.h"
 #include "AssetLoader.h"
+#include "CommonStructs.h"
 
 void GLAPIENTRY MessageCallback( GLenum source,
                                  GLenum type,
@@ -74,29 +75,35 @@ int main() { // int argc, char** argv
     };
 
        std::vector<std::string> faces{
-        "./textures/background/pos-x.jpg",
-        "./textures/background/neg-x.jpg",
-        "./textures/background/pos-y.jpg",
-        "./textures/background/neg-y.jpg",
-        "./textures/background/pos-z.jpg",
-        "./textures/background/neg-z.jpg"
+        "background/pos-x.jpg",
+        "background/neg-x.jpg",
+        "background/pos-y.jpg",
+        "background/neg-y.jpg",
+        "background/pos-z.jpg",
+        "background/neg-z.jpg"
     };
 
     GLuint cubemapTexture = AssetLoader::createCubeMap(faces);
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
     std::string vaoid = "cube";
-    std::vector<GLuint> glbuffs = VAOFactory::createVAO(vertices, vaoid.c_str(), &indices);
+    GpuObject* glbuffs = VAOFactory::createVAO(vertices, vaoid.c_str(), &indices);
     std::string vertexShaderPath = "../shaders/no_lighting.vert";
     std::string fragmentShaderPath = "../shaders/no_lighting.frag";
     ShaderProgram* program = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
     ShaderProgram* bp = new ShaderProgram("../shaders/background.vert", "../shaders/background.frag");
-    GameObject* object = new GameObject(program, glbuffs, 80, glm::vec3(-10,10,-10),glm::vec3(1, 1, 1),glm::vec3(0, 0, 0));
-    GameObject* plane = new GameObject(program, glbuffs, 80, glm::vec3(0,-6,0),glm::vec3(100, .1, 100),glm::vec3(0, 0, 0));
+    GameObject* object = new GameObject(program, glbuffs, glm::vec3(-10,10,-10),glm::vec3(1, 1, 1),glm::vec3(0, 0, 0));
+    GameObject* plane = new GameObject(program, glbuffs, glm::vec3(0,-6,0),glm::vec3(100, .1, 100),glm::vec3(0, 0, 0));
     Camera* c = new Camera(glm::vec3(0,-2,0),FOV, WIDTH/HEIGHT, glm::vec3(0,1,0), 0.0f, 0.0f);
+
+    GpuObject* treeObj = AssetLoader::loadObject("Tree");
+    GameObject* tree = new GameObject(program, treeObj, glm::vec3(10,10,10),glm::vec3(10, 10, 10),glm::vec3(0, 0, 0));
+
     std::vector<GameObject*> objs = { 
         object,
         plane,
+        tree,
+
      };
     Scene s = Scene(c,objs,bp,cubemapTexture);
     glfwSetWindowUserPointer(window, &s);

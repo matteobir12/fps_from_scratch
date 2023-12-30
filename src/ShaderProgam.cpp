@@ -1,5 +1,7 @@
 #include "ShaderProgram.h"
 
+GLuint ShaderProgram::currentlyActiveShader = 0;
+
 std::string ShaderProgram::readFile(const char* filePath) {
     std::string content;
     std::ifstream fileStream(filePath, std::ios::in);
@@ -111,7 +113,10 @@ ShaderProgram::ShaderProgram(const std::string& vertexPath, const std::string& f
 }
 
 void ShaderProgram::use() {
-    glUseProgram(programID);
+    if (currentlyActiveShader != programID){
+        glUseProgram(programID);
+        currentlyActiveShader = programID;
+    }        
 }
 
 GLuint ShaderProgram::getID() const {
@@ -120,6 +125,9 @@ GLuint ShaderProgram::getID() const {
 
 void ShaderProgram::setUniform(const std::string& name, float value) {
     glUniform1f(getUniformLocation(name), value);
+}
+void ShaderProgram::setUniform(const std::string& name, int value) {
+    glUniform1i(getUniformLocation(name), value);
 }
 void ShaderProgram::setUniform(const std::string& name, glm::mat4& value) {
     glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, glm::value_ptr(value));
