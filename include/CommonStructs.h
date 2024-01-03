@@ -7,9 +7,35 @@
 #include <string>
 
 struct Face {
-        std::vector<int> vertexIndices;
-        std::vector<int> textureIndices;
-        std::vector<int> normalIndices;
+        std::vector<unsigned int> vertexIndices;
+        std::vector<unsigned int> textureIndices;
+        std::vector<unsigned int> normalIndices;
+        Face() = default;
+
+        Face(unsigned int x, unsigned int y, unsigned int z) {
+            vertexIndices.push_back(x);
+            vertexIndices.push_back(y);
+            vertexIndices.push_back(z);
+        };
+        Face(unsigned int x, unsigned int y, unsigned int z, unsigned int xn, unsigned int yn, unsigned int zn) {
+            vertexIndices.push_back(x);
+            vertexIndices.push_back(y);
+            vertexIndices.push_back(z);
+            normalIndices.push_back(xn);
+            normalIndices.push_back(yn);
+            normalIndices.push_back(zn);
+        };
+        Face(unsigned int x, unsigned int y, unsigned int z, unsigned int xn, unsigned int yn, unsigned int zn, unsigned int xt, unsigned int yt, unsigned int zt) {
+            vertexIndices.push_back(x);
+            vertexIndices.push_back(y);
+            vertexIndices.push_back(z);
+            normalIndices.push_back(xn);
+            normalIndices.push_back(yn);
+            normalIndices.push_back(zn);
+            textureIndices.push_back(xt);
+            textureIndices.push_back(yt);
+            textureIndices.push_back(zt);
+        };
     };
 
     struct Material {
@@ -17,6 +43,7 @@ struct Face {
         glm::vec3 specular;
         float specularEx;
         GLuint texture;
+        bool useTexture = false;
         Material() = default;
     };
 
@@ -26,20 +53,39 @@ struct Face {
         FaceMaterial() = default;
     };
 
+    struct Vertex {
+        float x, y, z;
+        Vertex() = default;
+        Vertex(float x, float y, float z) : x(x), y(y), z(z) {}; 
+    };
+
+    struct VertexNormal {
+        float xn, yn, zn;
+    };
+
+    struct TextureCoord {
+        float u, v;
+    };
+
     struct CpuGeometry {
         std::string objectId;
         struct Data {
-            std::vector<float> vertices;
-            std::vector<float> textures;
-            std::vector<float> normals;
+            std::vector<Vertex> vertices;
+            std::vector<TextureCoord> textures;
+            std::vector<VertexNormal> normals;
             std::vector<FaceMaterial> FaceMaterials;
+            bool hasNormals = false;
+            bool hasTexcoords = false;
         } data;
+        CpuGeometry() = default;
+        CpuGeometry(std::string objectId) : objectId(objectId) {};
     };
 
+    // maybe change to represent each sub geo so default case is handled better. (remove offset)
     struct GpuGeometry {
-        GLuint EBO;
-        Material* material;
-        unsigned int triangleCnt = 0;
+        unsigned int size;
+        unsigned int offset;
+        Material* material = nullptr;
         GpuGeometry() = default;
     };
 
@@ -48,23 +94,25 @@ struct Face {
         
         GLuint VAO;
         GLuint VBO;
-        std::vector<GpuGeometry> gpuGeometries;
 
-        bool useFaces = true;
+        bool hasNormals = false;
+        bool hasTexcoords = false;
+
+        std::vector<GpuGeometry> gpuGeometries;
         
         GpuObject() = default;
         GpuObject(GLuint VAO, GLuint VBO, std::vector<GpuGeometry> gpuGeometries)
             : VAO(VAO), VBO(VBO), gpuGeometries(gpuGeometries) {}
 
+        // use only when you will be defining the each subgeo
         GpuObject(GLuint VAO, GLuint VBO)
             : VAO(VAO), VBO(VBO) {
-                useFaces = false;
         }
-        GpuObject(GLuint VAO, GLuint VBO, GLuint EBO, unsigned int triangleCnt): VAO(VAO), VBO(VBO) {
-            useFaces = true;
+        // use only when one large geo
+        GpuObject(GLuint VAO, GLuint VBO, unsigned int size, unsigned int offset): VAO(VAO), VBO(VBO) {
             GpuGeometry geo = GpuGeometry();
-            geo.EBO = EBO;
-            geo.triangleCnt = triangleCnt;
+            geo.size = size;
+            geo.offset = offset;
             gpuGeometries.push_back(geo);
         }
     };

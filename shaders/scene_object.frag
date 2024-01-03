@@ -1,5 +1,4 @@
 #version 330 core
-precision highp float;
 
 in vec3 vNormal;
 in vec3 surfaceWorldPosition;
@@ -11,12 +10,12 @@ uniform bool uUseTexture;
 uniform sampler2D uTexture;
 uniform vec3 uLightPosition[3];
 uniform vec3 uLightDirection[3];
-uniform vec3 uLightColor[3];
+uniform vec3 uLightColor[3]; // multiply the light's color with the diffuse and specular components to affect the surface color.
 uniform bool uLightIsDirectional[3];
 uniform bool uLightIsOn[3];
 uniform float uShininess;
 uniform float lightCuttoff;
-uniform float ambientLight;
+uniform vec3 ambientLight;
 uniform vec4 inColor;
 
 //uniform vec4 u_color;

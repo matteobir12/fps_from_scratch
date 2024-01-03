@@ -62,6 +62,7 @@ GLuint ShaderProgram::loadShader(const char* vertex_path, const char* fragment_p
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 
+    
     return program;
 }
 

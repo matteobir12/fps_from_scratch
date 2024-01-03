@@ -1,5 +1,5 @@
 CXX = g++ 
-CXXFLAGS = -Wall -Wextra -O2
+CXXFLAGS = -Wall -Wextra -O0
 LDLIBS = lib/libglfw3.a -lgdi32 -luser32 -lglew32 -lopengl32
 
 TARGET = build/main.exe
@@ -31,6 +31,7 @@ clean:
 	del /Q $(OBJDIR)\main.exe
 # del /Q $(OBJDIR)\*.dll
 
+dev: CXXFLAGS += -g
 dev: all
 	@$(TARGET)
 

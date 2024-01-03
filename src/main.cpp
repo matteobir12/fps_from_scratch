@@ -40,19 +40,6 @@ int main() { // int argc, char** argv
         std::cout << "goodbye world";
         return -1;
     }
-    std::vector<float> vertices = {
-        // Front face
-        -0.5f, -0.5f,  0.5f, // Bottom Left
-        0.5f, -0.5f,  0.5f, // Bottom Right
-        0.5f,  0.5f,  0.5f, // Top Right
-        -0.5f,  0.5f,  0.5f, // Top Left
-        //back
-        -0.5f, -0.5f,  -0.5f, // Bottom Left
-        0.5f, -0.5f,  -0.5f, // Bottom Right
-        0.5f,  0.5f,  -0.5f, // Top Right
-        -0.5f,  0.5f,  -0.5f, // Top Left
-
-    };
     std::vector<unsigned int> indices = {
         // front face
         0, 1, 2,
@@ -86,26 +73,57 @@ int main() { // int argc, char** argv
     GLuint cubemapTexture = AssetLoader::createCubeMap(faces);
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
-    std::string vaoid = "cube";
-    GpuObject* glbuffs = VAOFactory::createVAO(vertices, vaoid.c_str(), &indices);
+
     std::string vertexShaderPath = "../shaders/no_lighting.vert";
     std::string fragmentShaderPath = "../shaders/no_lighting.frag";
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
     ShaderProgram* program = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
     ShaderProgram* bp = new ShaderProgram("../shaders/background.vert", "../shaders/background.frag");
-    GameObject* object = new GameObject(program, glbuffs, glm::vec3(-10,10,-10),glm::vec3(1, 1, 1),glm::vec3(0, 0, 0));
-    GameObject* plane = new GameObject(program, glbuffs, glm::vec3(0,-6,0),glm::vec3(100, .1, 100),glm::vec3(0, 0, 0));
-    Camera* c = new Camera(glm::vec3(0,-2,0),FOV, WIDTH/HEIGHT, glm::vec3(0,1,0), 0.0f, 0.0f);
+    // tmp cube stuff
+    std::string vaoid = "cube";
+    CpuGeometry* cpuCube = new CpuGeometry(vaoid);
+    // Front face
+    cpuCube->data.vertices.emplace_back(-0.5f, -0.5f,  0.5f); // Bottom Left
+    cpuCube->data.vertices.emplace_back(0.5f, -0.5f,  0.5f);// Bottom Right
+    cpuCube->data.vertices.emplace_back(0.5f,  0.5f,  0.5f); // Top Right
+    cpuCube->data.vertices.emplace_back(-0.5f,  0.5f,  0.5f); // Top Left
+    //back
+    cpuCube->data.vertices.emplace_back(-0.5f, -0.5f,  -0.5f); // Bottom Left
+    cpuCube->data.vertices.emplace_back(0.5f, -0.5f,  -0.5f); // Bottom Right
+    cpuCube->data.vertices.emplace_back(0.5f,  0.5f,  -0.5f); // Top Right
+    cpuCube->data.vertices.emplace_back(-0.5f,  0.5f,  -0.5f); // Top Left
+    FaceMaterial cubeFm{};
+    for (size_t i = 0; i < indices.size(); i+=3){
+        Face f(indices[i], indices[i+1], indices[i+2]);
+        cubeFm.faces.push_back(f);
+    }
+    cpuCube->data.FaceMaterials.push_back(cubeFm);
+    std::unordered_map<std::string, Material*> empty;
+    GpuObject* cubeObj = VAOFactory::createVAO(cpuCube, empty);
+    std::cout << cubeObj->gpuGeometries.size() << std::endl;
+    GameObject* object = new GameObject(program, cubeObj, glm::vec3(-10,10,-10),glm::vec3(1, 1, 1),glm::vec3(0, 0, 0));
+    GameObject* plane = new GameObject(program, cubeObj, glm::vec3(0,-6,0),glm::vec3(100, .1, 100),glm::vec3(0, 0, 0));
+    // end tmp
+    Camera* c = new Camera(glm::vec3(0,0,0), FOV, WIDTH/HEIGHT, glm::vec3(0,1,0), 0.0f, 0.0f);
 
     GpuObject* treeObj = AssetLoader::loadObject("Tree");
     GameObject* tree = new GameObject(program, treeObj, glm::vec3(10,10,10),glm::vec3(10, 10, 10),glm::vec3(0, 0, 0));
+
+    GpuObject* lptreeObj = AssetLoader::loadObject("low_poly_tree");
+    GameObject* lptree = new GameObject(program, lptreeObj, glm::vec3(-10,10,10),glm::vec3(10, 10, 10),glm::vec3(0, 0, 0));
+
+    GpuObject* catObj = AssetLoader::loadObject("cat");
+    GameObject* cat = new GameObject(program, catObj, glm::vec3(10,10,-10),glm::vec3(1, 1, 1),glm::vec3(260, 0, 0));
 
     std::vector<GameObject*> objs = { 
         object,
         plane,
         tree,
-
+        lptree,
+        cat,
      };
-    Scene s = Scene(c,objs,bp,cubemapTexture);
+    Scene s = Scene(c, objs, bp, cubemapTexture);
     glfwSetWindowUserPointer(window, &s);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
@@ -128,7 +146,7 @@ int main() { // int argc, char** argv
     glfwSetKeyCallback(window, Scene::key_callback);
     glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
     while (!glfwWindowShouldClose(window)) {
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         s.update();
         s.render();

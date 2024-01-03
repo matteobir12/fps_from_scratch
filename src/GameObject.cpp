@@ -18,6 +18,9 @@ GameObject::GameObject(ShaderProgram* shaderProgram, GpuObject* objData, const g
 
 
     model = glm::translate(model,objectPosition);
+    // for(auto c : objData->gpuGeometries){
+    //     std::cout << "x:" <<c.material<< std::endl;
+    // }
 }
 
 void GameObject::draw(const glm::mat4& projectionViewMatrix) {
@@ -29,39 +32,39 @@ void GameObject::draw(const glm::mat4& projectionViewMatrix) {
     
     glm::mat4 pvm = projectionViewMatrix * model;
     shader->setUniform("uMat", pvm);
+    
     glm::vec4 color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
     shader->setUniform("u_color", color);
     // bind textures, etc.
-    if (objData->useFaces){
-        for (const GpuGeometry& geom : objData->gpuGeometries) {
-            if (geom.material) {
-                // Set the diffuse and specular uniform variables
-                // glUniform3fv(diffuseUniformLocation, 1, glm::value_ptr(geom.material->diffuse));
-                // glUniform3fv(specularUniformLocation, 1, glm::value_ptr(geom.material->specular));
-                // glUniform1f(specularExUniformLocation, geom.material->specularEx);
-                
-                // Bind the texture
+    for (const GpuGeometry& geom : objData->gpuGeometries) {
+        if (geom.material) {
+            // Set the diffuse and specular uniform variables
+            // glUniform3fv(diffuseUniformLocation, 1, glm::value_ptr(geom.material->diffuse));
+            // glUniform3fv(specularUniformLocation, 1, glm::value_ptr(geom.material->specular));
+            // glUniform1f(specularExUniformLocation, geom.material->specularEx);
+            
+            // Bind the texture
+            if (geom.material->useTexture) {
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, geom.material->texture);
                 shader->setUniform("uUseTexture", 1);
                 shader->setUniform("textureSampler", 0);
             } else {
                 shader->setUniform("uUseTexture", 0);
+                glm::vec4 color = glm::vec4(geom.material->diffuse, 1.0f);
+                shader->setUniform("u_color", color);
             }
 
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geom.EBO);
-            glDrawElements(GL_TRIANGLES, geom.triangleCnt * 3, GL_UNSIGNED_INT, 0);
-            // maybe add dev only env var?
-            for (GLenum error = glGetError(); error; error = glGetError()) {
-                std::cerr << "OpenGL Error at draw Elem (" << error << "): " << std::endl;
-            }
+        } else {
+            shader->setUniform("uUseTexture", 0);
         }
 
-    } else {
-        std::cout << "stinky";
+        glDrawArrays(GL_TRIANGLES, geom.offset, geom.size);
+        // maybe add dev only env var?
+        for (GLenum error = glGetError(); error; error = glGetError()) {
+            std::cerr << "OpenGL Error at draw Elem (" << error << "): " << std::endl;
+        }
     }
-    
-    // add support for draw arrays
 }
 
 

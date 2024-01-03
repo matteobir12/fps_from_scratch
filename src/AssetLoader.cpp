@@ -81,11 +81,12 @@ GLuint AssetLoader::createCubeMap(const std::vector<std::string>& faces) {
 
 // probably should async
 // add map for reusing already loaded objects
+// models smaller than unsigned int verts
 GpuObject* AssetLoader::loadObject(const std::string& name) {
     std::vector<std::string> mtlFiles;
     CpuGeometry* geo = parseOBJ(objFolder + name + "/" + name + ".obj", mtlFiles);
 
-    std::cout << geo->data.FaceMaterials.size() << std::endl;
+    std::cout << geo->data.vertices.size() << " " << geo->data.normals.size() << " " << geo->data.textures.size() << std::endl;
 
     std::unordered_map<std::string, Material*> materialLibs;
     for (std::string file : mtlFiles){
@@ -116,51 +117,73 @@ CpuGeometry* AssetLoader::parseOBJ(const std::string& filePath, std::vector<std:
         std::string prefix;
         linestream >> prefix;
         if (prefix == "v") {
-            float x, y, z;
-            if (linestream >> x >> y >> z) {
-                geometry->data.vertices.push_back(x);
-                geometry->data.vertices.push_back(y);
-                geometry->data.vertices.push_back(z);
+            Vertex v;
+            if (linestream >> v.x >> v.y >> v.z) {
+                geometry->data.vertices.push_back(v);
             } else {
                 std::cout << "Failed to read 3 floats." << std::endl;
             }
         } else if (prefix == "vt") {
-            float u, v;
-            if (linestream >> u >> v) {
-                geometry->data.textures.push_back(u);
-                geometry->data.textures.push_back(v);
+            geometry->data.hasTexcoords = true;
+            TextureCoord vt;
+            if (linestream >> vt.u >> vt.v) {
+                geometry->data.textures.push_back(vt);
             } else {
                 std::cout << "Failed to read 2 floats." << std::endl;
             }
         } else if (prefix == "vn") {
-            float x, y, z;
-            if (linestream >> x >> y >> z) {
-                geometry->data.normals.push_back(x);
-                geometry->data.normals.push_back(y);
-                geometry->data.normals.push_back(z);
+            geometry->data.hasNormals = true;
+            VertexNormal vn;
+            if (linestream >> vn.xn >> vn.yn >> vn.zn) {
+                geometry->data.normals.push_back(vn);
             } else {
                 std::cout << "Failed to read 3 floats." << std::endl;
             }
         } else if (prefix == "f") {
-            Face f;
+            Face f = Face();
+            f.vertexIndices.clear();
+            f.textureIndices.clear();
+            f.normalIndices.clear();
             std::string vertex;
             while (linestream >> vertex) {
-                std::replace(vertex.begin(), vertex.end(), '/', ' ');
-                std::istringstream vertexStream(vertex);
-                int vIndex, tIndex = -1, nIndex = -1;
-                vertexStream >> vIndex;
-                f.vertexIndices.push_back(vIndex - 1);
-                
-                if (vertexStream.peek() != ' ') vertexStream >> tIndex;
-                if (tIndex >= 0) f.textureIndices.push_back(tIndex - 1);
+                 std::istringstream vertexStream(vertex);
+                std::string v, vt, vn;
 
-                if (vertexStream.peek() != ' ') vertexStream >> nIndex;
-                if (nIndex >= 0) f.normalIndices.push_back(nIndex - 1);
+                std::getline(vertexStream, v, '/');  // Read the vertex index
+                std::getline(vertexStream, vt, '/'); // Read the texture index (if any)
+                std::getline(vertexStream, vn);      // Read the normal index (if any)
+
+                if (!v.empty()) {
+                    int vIndex = std::stoi(v) - 1; // OBJ indices are 1-based
+                    f.vertexIndices.push_back(vIndex);
+                }
+
+                if (!vt.empty()) {
+                    int tIndex = std::stoi(vt) - 1;
+                    f.textureIndices.push_back(tIndex);
+                }
+
+                if (!vn.empty()) {
+                    int nIndex = std::stoi(vn) - 1;
+                    f.normalIndices.push_back(nIndex);
+                }
             }
-            currentFaceMaterial.faces.push_back(f);
+            if (f.vertexIndices.size() != 3 && f.vertexIndices.size() != 4) {
+                std::cerr << "unexpected read size: " << f.vertexIndices.size() << std::endl;
+            }
+            if (f.vertexIndices.size() == 4) {
+                Face f1 = Face(f.vertexIndices[0], f.vertexIndices[1], f.vertexIndices[2],f.normalIndices[0], f.normalIndices[1], f.normalIndices[2],f.textureIndices[0], f.textureIndices[1], f.textureIndices[2]);
+                Face f2  = Face(f.vertexIndices[0], f.vertexIndices[2], f.vertexIndices[3],f.normalIndices[0], f.normalIndices[2], f.normalIndices[3],f.textureIndices[0], f.textureIndices[2], f.textureIndices[3]);
+                currentFaceMaterial.faces.push_back(f1);
+                currentFaceMaterial.faces.push_back(f2);
+            } else {
+                currentFaceMaterial.faces.push_back(f);
+            }
+
         } else if (prefix == "usemtl") {
             
             if (!currentFaceMaterial.material.empty()) {
+                std::cout << "non empty:" << currentFaceMaterial.material << ":" <<  std::endl;
                 geometry->data.FaceMaterials.push_back(currentFaceMaterial);
                 currentFaceMaterial = FaceMaterial();
             }
@@ -175,8 +198,8 @@ CpuGeometry* AssetLoader::parseOBJ(const std::string& filePath, std::vector<std:
         } else if (prefix == "s") {
             // smoothing
         } else if (prefix == "o") {
-            geometry->data.FaceMaterials.push_back(currentFaceMaterial);
-            currentFaceMaterial = FaceMaterial();
+            // geometry->data.FaceMaterials.push_back(currentFaceMaterial);
+            // currentFaceMaterial = FaceMaterial();
         }
     }
 
@@ -228,7 +251,10 @@ void AssetLoader::parseMTL(const std::string& folderPath, const std::string& fil
         } else if (prefix == "map_Kd") {
             std::string textureName;
             linestream >> textureName;
+            currentMaterial->useTexture = true;
+
             auto fndTex = loadedTextures.find(textureName);
+            
             if (fndTex != loadedTextures.end()) {
                 currentMaterial->texture = fndTex->second;
             } else {
