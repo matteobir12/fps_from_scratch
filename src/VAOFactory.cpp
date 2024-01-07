@@ -4,7 +4,6 @@ VAOFactory::Attribute::Attribute(GLuint idx, GLint sz, GLenum tp, GLsizei str, s
     : index(idx), size(sz), type(tp), stride(str), offset(off) {}
 
 GpuObject* VAOFactory::createVAO(CpuGeometry* cpuGeo, std::unordered_map<std::string, Material*>& materialLibs) {
-    std::cout << "in" << std::endl;
     GLuint VAO, VBO;
 
     glGenVertexArrays(1, &VAO);
@@ -69,7 +68,7 @@ GpuObject* VAOFactory::createVAO(CpuGeometry* cpuGeo, std::unordered_map<std::st
         }
         gpuObjectPtr->gpuGeometries.push_back(geo);
     }
-    std::cout <<cpuGeo->objectId<<" vbo size: "<< interleavedData.size() << std::endl;
+
     glBufferData(GL_ARRAY_BUFFER, interleavedData.size() * sizeof(float), interleavedData.data(), GL_STATIC_DRAW);
 
     std::vector<Attribute> attributes;
@@ -102,6 +101,5 @@ GpuObject* VAOFactory::createVAO(CpuGeometry* cpuGeo, std::unordered_map<std::st
     glBindVertexArray(0);
 
     gpuObjectPtr->objectId = cpuGeo->objectId;
-    std::cout << "out" << std::endl;
     return gpuObjectPtr;
 }

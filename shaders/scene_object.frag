@@ -16,14 +16,15 @@ uniform bool uLightIsOn[3];
 uniform float uShininess;
 uniform float lightCuttoff;
 uniform vec3 ambientLight;
-uniform vec4 inColor;
+uniform vec3 specColor;
+uniform vec4 u_color;
 
 //uniform vec4 u_color;
 
 out vec4 outColor;
 
 void main() {
-    vec4 color = inColor;
+    vec4 color = u_color;
     if (uUseTexture){
         color = texture(uTexture,vTextCoord);
     }
@@ -33,7 +34,7 @@ void main() {
 
     vec3 normal = normalize(vNormal);
     
-    for(int i = 0; i < 2; i++) {
+    for(int i = 0; i < 3; i++) {
         
         if (!uLightIsOn[i]){
             continue;
@@ -47,7 +48,7 @@ void main() {
                 diffuse += max(dot(normal, normalize(uLightDirection[i])),0.0) * color.xyz;
                 float s =  max(dot(normal, halfVector),0.0);
                 float specIntense = pow(s, uShininess);
-                specular += s * specIntense  * color.xyz;
+                specular += s * specIntense  * specColor;
     
             }
         }
@@ -56,9 +57,9 @@ void main() {
             diffuse += max(dot(normal, normalize(lightDirection)),0.0) * color.xyz;
             float s =  max(dot(normal, halfVector),0.0);
             float specIntense = pow(s, uShininess);
-            specular += s * specIntense  * color.xyz;
+            specular += s * specIntense  * specColor;
         }
-        //outColor = vec4(vNormal,1);
     }
+    //outColor = vec4(normal,1.0);
     outColor = vec4(diffuse + specular +ambient,color.w);
 }

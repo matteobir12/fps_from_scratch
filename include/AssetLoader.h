@@ -23,7 +23,7 @@ private:
        static std::string texFolder;
        static std::string objFolder;
        struct TextureLoadTask {
-            GLuint textureID;
+            GLuint& textureID;
             std::string filename;
         };
 

@@ -79,6 +79,7 @@ int main() { // int argc, char** argv
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     ShaderProgram* program = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
+    ShaderProgram* lightProgram = new ShaderProgram("../shaders/scene_object.vert", "../shaders/scene_object.frag");
     ShaderProgram* bp = new ShaderProgram("../shaders/background.vert", "../shaders/background.frag");
     // tmp cube stuff
     std::string vaoid = "cube";
@@ -103,18 +104,18 @@ int main() { // int argc, char** argv
     GpuObject* cubeObj = VAOFactory::createVAO(cpuCube, empty);
     std::cout << cubeObj->gpuGeometries.size() << std::endl;
     GameObject* object = new GameObject(program, cubeObj, glm::vec3(-10,10,-10),glm::vec3(1, 1, 1),glm::vec3(0, 0, 0));
-    GameObject* plane = new GameObject(program, cubeObj, glm::vec3(0,-6,0),glm::vec3(100, .1, 100),glm::vec3(0, 0, 0));
+    GameObject* plane = new GameObject(program, cubeObj, glm::vec3(0,-6,0), glm::vec3(100, .1, 100), glm::vec3(0, 0, 0));
     // end tmp
     Camera* c = new Camera(glm::vec3(0,0,0), FOV, WIDTH/HEIGHT, glm::vec3(0,1,0), 0.0f, 0.0f);
 
     GpuObject* treeObj = AssetLoader::loadObject("Tree");
-    GameObject* tree = new GameObject(program, treeObj, glm::vec3(10,10,10),glm::vec3(10, 10, 10),glm::vec3(0, 0, 0));
+    GameObject* tree = new GameObject(lightProgram, treeObj, glm::vec3(10,10,10),glm::vec3(10, 10, 10),glm::vec3(0, 0, 0));
 
     GpuObject* lptreeObj = AssetLoader::loadObject("low_poly_tree");
-    GameObject* lptree = new GameObject(program, lptreeObj, glm::vec3(-10,10,10),glm::vec3(10, 10, 10),glm::vec3(0, 0, 0));
+    GameObject* lptree = new GameObject(lightProgram, lptreeObj, glm::vec3(-1,1,1),glm::vec3(3, 3, 3),glm::vec3(0, 0, 0));
 
     GpuObject* catObj = AssetLoader::loadObject("cat");
-    GameObject* cat = new GameObject(program, catObj, glm::vec3(10,10,-10),glm::vec3(1, 1, 1),glm::vec3(260, 0, 0));
+    GameObject* cat = new GameObject(lightProgram, catObj, glm::vec3(10,10,-10),glm::vec3(.5, .5, .5),glm::vec3(120, 0, 0));
 
     std::vector<GameObject*> objs = { 
         object,

@@ -86,8 +86,6 @@ GpuObject* AssetLoader::loadObject(const std::string& name) {
     std::vector<std::string> mtlFiles;
     CpuGeometry* geo = parseOBJ(objFolder + name + "/" + name + ".obj", mtlFiles);
 
-    std::cout << geo->data.vertices.size() << " " << geo->data.normals.size() << " " << geo->data.textures.size() << std::endl;
-
     std::unordered_map<std::string, Material*> materialLibs;
     for (std::string file : mtlFiles){
         parseMTL(objFolder + name + "/", file, materialLibs);
@@ -183,7 +181,6 @@ CpuGeometry* AssetLoader::parseOBJ(const std::string& filePath, std::vector<std:
         } else if (prefix == "usemtl") {
             
             if (!currentFaceMaterial.material.empty()) {
-                std::cout << "non empty:" << currentFaceMaterial.material << ":" <<  std::endl;
                 geometry->data.FaceMaterials.push_back(currentFaceMaterial);
                 currentFaceMaterial = FaceMaterial();
             }
@@ -258,10 +255,13 @@ void AssetLoader::parseMTL(const std::string& folderPath, const std::string& fil
             if (fndTex != loadedTextures.end()) {
                 currentMaterial->texture = fndTex->second;
             } else {
-                GLuint texID = 0;
                 std::string texPath = texFolder + fileName.substr(0, fileName.size() - 4) + "/" + textureName;
-                loadTextureAsync(texID, texPath,false);
-                currentMaterial->texture = texID;
+                GLuint textureID;
+                glGenTextures(1, &textureID);
+                currentMaterial->texture = textureID;
+                loadTextureAsync(textureID, texPath, false);
+                
+                
             }
             
         } else if (prefix == "Kd") {

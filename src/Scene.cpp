@@ -69,15 +69,3 @@ void Scene::drawBackground() {
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
-
-std::vector<float> Scene::BackgroundPositions() {
-        std::vector<float> a = {
-            -1, -1, 
-            1, -1, 
-            -1,  1, 
-            -1,  1,
-            1, -1,
-            1,  1,
-        };
-    return a;
-}

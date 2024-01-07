@@ -21,6 +21,7 @@ GameObject::GameObject(ShaderProgram* shaderProgram, GpuObject* objData, const g
     // for(auto c : objData->gpuGeometries){
     //     std::cout << "x:" <<c.material<< std::endl;
     // }
+    updateModelInverseTranspose();
 }
 
 void GameObject::draw(const glm::mat4& projectionViewMatrix) {
@@ -42,6 +43,13 @@ void GameObject::draw(const glm::mat4& projectionViewMatrix) {
             // glUniform3fv(diffuseUniformLocation, 1, glm::value_ptr(geom.material->diffuse));
             // glUniform3fv(specularUniformLocation, 1, glm::value_ptr(geom.material->specular));
             // glUniform1f(specularExUniformLocation, geom.material->specularEx);
+
+            shader->setUniform("uWorldInverseTranspose", modelInverseTranspose);
+
+            shader->setUniform("specColor", geom.material->specular);
+            shader->setUniform("uShininess", geom.material->specularEx);
+            glm::vec3 abl(1.0f, 1.0f, 1.0f);
+            shader->setUniform("ambientLight", abl);
             
             // Bind the texture
             if (geom.material->useTexture) {
@@ -62,7 +70,7 @@ void GameObject::draw(const glm::mat4& projectionViewMatrix) {
         glDrawArrays(GL_TRIANGLES, geom.offset, geom.size);
         // maybe add dev only env var?
         for (GLenum error = glGetError(); error; error = glGetError()) {
-            std::cerr << "OpenGL Error at draw Elem (" << error << "): " << std::endl;
+            std::cerr << "OpenGL Error at draw array (" << error << "): " << std::endl;
         }
     }
 }

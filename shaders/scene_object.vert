@@ -1,8 +1,8 @@
 #version 330 core
 
-in vec4 aPosition;
-in vec3 aNormal;
-in vec2 aTextCoord;
+layout (location = 0) in vec3 aPosition;
+layout (location = 1) in vec3 vertexNorm;
+layout (location = 2) in vec2 aTextCoord;
 
 uniform mat4 uMat;
 
@@ -17,10 +17,10 @@ out vec2 vTextCoord;
 
 void main() {
     vTextCoord = aTextCoord;
-    gl_Position = uMat * aPosition;
+    gl_Position = uMat * vec4(aPosition, 1.0);
 
-    vNormal = mat3(uWorldInverseTranspose) * aNormal;
+    vNormal = mat3(uWorldInverseTranspose) * vertexNorm;
 
-    surfaceWorldPosition = (uWorld * aPosition).xyz;
+    surfaceWorldPosition = mat3(uWorld) * aPosition;
     vSurfaceToViewer = uViewerWorldPosition - surfaceWorldPosition;
 }
