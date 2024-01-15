@@ -40,8 +40,9 @@ public:
     void setFOV(float newFOV);
     void setAspectRatio(float newAspectRatio);
 
-    void move(const glm::vec3& offset);
     void translate(const glm::vec3& offset);
+    void translateRelative(const glm::vec3& offset);
+    void translateGame(const glm::vec3& offset);
 
     void updateCameraVectors();
     void rotate(float xoffset, float yoffset, bool constrainPitch = true);

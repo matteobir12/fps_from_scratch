@@ -14,17 +14,18 @@ SOURCES = $(wildcard $(SRCDIR)/*.cpp)
 # Replace the directory and extension of the source files to point to the object directory and change extension to .o
 OBJECTS = $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
-all: $(TARGET)
+all: $(OBJDIR) $(TARGET)
 
-$(TARGET): $(OBJECTS)
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+# cp $(BINDIR)/*.dll $(OBJDIR)/
+
+$(TARGET): $(OBJECTS) | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $^ -L$(LIBDIR) $(LDLIBS)
 
 # Pattern rule for object files, which considers the include directory for header files
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -I$(INCDIR) -c $< -o $@
-
-build:
-	cp $(BINDIR)/*.dll $(OBJDIR)/
 
 clean:
 	del /Q $(OBJDIR)\*.o

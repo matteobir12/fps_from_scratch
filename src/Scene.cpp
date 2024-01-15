@@ -1,9 +1,29 @@
 #include "Scene.h"
+#include "HUD.h"
 
-void Scene::update() {
+void Scene::update(GLFWwindow* window) {
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR) {
         std::cerr << "OpenGL error: " << err << std::endl;
+    }
+
+     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
+        camera->translateGame(glm::vec3(0,0,1));
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
+        camera->translateGame(glm::vec3(0,0,-1));
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+        camera->translateGame(glm::vec3(1,0,0));
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+        camera->translateGame(glm::vec3(-1,0,0));
+    }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS){
+        camera->translateGame(glm::vec3(0,1,0));
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS){
+        camera->translateGame(glm::vec3(0,-1,0));
     }
 }
 
@@ -12,6 +32,9 @@ void Scene::render() {
     for (GameObject*& object : objects) {
         
         object->draw(camera->getProjectionViewMatrix());
+    }
+    if (drawHud){
+        HUD::Render();
     }
 }
 
@@ -35,9 +58,7 @@ Scene::Scene(Camera* camera, const std::vector<GameObject*>& objects, ShaderProg
     glEnableVertexAttribArray(backaPositionLocation);
     glVertexAttribPointer(backaPositionLocation, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-    backgroundProgram->setUniform("uSkybox",0);
-
-
+    backgroundProgram->setUniform("uSkybox", 0);
  
 }
 
@@ -63,9 +84,6 @@ void Scene::drawBackground() {
     glm::mat4 viewDirectionProjectionInverseMatrix = glm::inverse(viewDirectionProjectionMatrix);
 
     backgroundProgram->setUniform("uViewDirectionProjectionInverse", viewDirectionProjectionInverseMatrix);
-
-
-    glDepthFunc(GL_LEQUAL);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }

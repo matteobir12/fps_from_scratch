@@ -1,27 +1,26 @@
 #include "GameObject.h"
 
-
 bool GameObject::isInFieldOfView(const glm::mat4& projectionViewMatrix) {
-    glm::vec4 pos = projectionViewMatrix * readOnlyPositionHomo();
+    std::shared_lock<std::shared_mutex> lock(positionMtx);
+    glm::vec4 pos = projectionViewMatrix * glm::vec4(position, 1);
     return pos.x > -1.0f && pos.x < 1.0f && pos.y > -1.0f && pos.y < 1.0f;
 }
 
+void GameObject::move(glm::vec3& offset) {
+    std::unique_lock<std::shared_mutex> lock(positionMtx);
+    
+    position += offset;
+}
 
-GameObject::GameObject(ShaderProgram* shaderProgram, GpuObject* objData, const glm::vec3& objectPosition, const glm::vec3& objectScale, const glm::vec3& objectRotation) :
-    shader(shaderProgram), objData(objData)  {
-    model = glm::mat4(1);
-    model = glm::rotate(model, objectRotation.x, glm::vec3(1, 0, 0));
-    model = glm::rotate(model, objectRotation.y, glm::vec3(0, 1, 0));
-    model = glm::rotate(model, objectRotation.z, glm::vec3(0, 0, 1));
+void GameObject::setPosition(glm::vec3& newPos) {
+    std::unique_lock<std::shared_mutex> lock(positionMtx);
+    position = newPos;
 
-    model = glm::scale(model, objectScale);
+}
 
-
-    model = glm::translate(model,objectPosition);
-    // for(auto c : objData->gpuGeometries){
-    //     std::cout << "x:" <<c.material<< std::endl;
-    // }
-    updateModelInverseTranspose();
+glm::vec3 GameObject::getPosition() {
+    std::shared_lock<std::shared_mutex> lock(positionMtx);
+    return position;
 }
 
 void GameObject::draw(const glm::mat4& projectionViewMatrix) {
@@ -74,6 +73,3 @@ void GameObject::draw(const glm::mat4& projectionViewMatrix) {
         }
     }
 }
-
-
-// Setters and getters for position, scale, rotation, etc.

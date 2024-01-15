@@ -31,10 +31,25 @@ void Camera::updateProjectionMatrix() {
     didUpdate = true;
 }
 
-void Camera::translate(const glm::vec3& offset) {
+void Camera::translateRelative(const glm::vec3& offset) {
     position += right * offset.x;
     position += up * offset.y;
     position += front * offset.z; // move speed
+    didUpdate = true;
+}
+
+void Camera::translateGame(const glm::vec3& offset) {
+    position += right * offset.x;
+    position.y += offset.y;
+
+    glm::vec3 forwardOnPlane = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
+    position += forwardOnPlane * offset.z;
+
+    didUpdate = true;
+}
+
+void Camera::translate(const glm::vec3& offset) {
+    position += offset;
     didUpdate = true;
 }
 

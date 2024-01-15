@@ -1,5 +1,4 @@
 #version 330 core
-precision highp float;
 
 in vec4 frag_color;
 in vec2 vTextCoord;

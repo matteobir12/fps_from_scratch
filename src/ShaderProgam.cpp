@@ -62,6 +62,12 @@ GLuint ShaderProgram::loadShader(const char* vertex_path, const char* fragment_p
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 
+    glUseProgram(program);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     return program;
 }

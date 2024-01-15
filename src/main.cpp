@@ -7,6 +7,7 @@
 #include "GameObject.h"
 #include "VAOFactory.h"
 #include "Scene.h"
+#include "HUD.h"
 #include "AssetLoader.h"
 #include "CommonStructs.h"
 
@@ -74,13 +75,10 @@ int main() { // int argc, char** argv
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
 
-    std::string vertexShaderPath = "../shaders/no_lighting.vert";
-    std::string fragmentShaderPath = "../shaders/no_lighting.frag";
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-    ShaderProgram* program = new ShaderProgram(vertexShaderPath, fragmentShaderPath);
+    ShaderProgram* program = new ShaderProgram("../shaders/no_lighting.vert", "../shaders/no_lighting.frag");
     ShaderProgram* lightProgram = new ShaderProgram("../shaders/scene_object.vert", "../shaders/scene_object.frag");
     ShaderProgram* bp = new ShaderProgram("../shaders/background.vert", "../shaders/background.frag");
+    HUD::Initialize(WIDTH/HEIGHT, program);
     // tmp cube stuff
     std::string vaoid = "cube";
     CpuGeometry* cpuCube = new CpuGeometry(vaoid);
@@ -115,7 +113,7 @@ int main() { // int argc, char** argv
     GameObject* lptree = new GameObject(lightProgram, lptreeObj, glm::vec3(-1,1,1),glm::vec3(3, 3, 3),glm::vec3(0, 0, 0));
 
     GpuObject* catObj = AssetLoader::loadObject("cat");
-    GameObject* cat = new GameObject(lightProgram, catObj, glm::vec3(10,10,-10),glm::vec3(.5, .5, .5),glm::vec3(120, 0, 0));
+    GameObject* cat = new GameObject(lightProgram, catObj, glm::vec3(20,10,-10),glm::vec3(.5, .5, .5),glm::vec3(60, 0, 0));
 
     std::vector<GameObject*> objs = { 
         object,
@@ -149,7 +147,7 @@ int main() { // int argc, char** argv
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        s.update();
+        s.update(window);
         s.render();
 
         glfwSwapBuffers(window);
