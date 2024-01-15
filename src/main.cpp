@@ -100,7 +100,6 @@ int main() { // int argc, char** argv
     cpuCube->data.FaceMaterials.push_back(cubeFm);
     std::unordered_map<std::string, Material*> empty;
     GpuObject* cubeObj = VAOFactory::createVAO(cpuCube, empty);
-    std::cout << cubeObj->gpuGeometries.size() << std::endl;
     GameObject* object = new GameObject(program, cubeObj, glm::vec3(-10,10,-10),glm::vec3(1, 1, 1),glm::vec3(0, 0, 0));
     GameObject* plane = new GameObject(program, cubeObj, glm::vec3(0,-6,0), glm::vec3(100, .1, 100), glm::vec3(0, 0, 0));
     // end tmp
