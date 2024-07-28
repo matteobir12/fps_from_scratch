@@ -90,9 +90,11 @@ GpuObject* AssetLoader::loadObject(const std::string& name) {
     for (std::string file : mtlFiles){
         parseMTL(objFolder + name + "/", file, materialLibs);
     }
-    
+    if (!geo)
+        throw std::runtime_error("error getting geo");
     GpuObject* outGeo = VAOFactory::createVAO(geo, materialLibs);
     outGeo->objectId = name;
+
     free(geo);
     return outGeo;
 }
@@ -138,10 +140,9 @@ CpuGeometry* AssetLoader::parseOBJ(const std::string& filePath, std::vector<std:
                 std::cout << "Failed to read 3 floats." << std::endl;
             }
         } else if (prefix == "f") {
-            Face f = Face();
-            f.vertexIndices.clear();
-            f.textureIndices.clear();
-            f.normalIndices.clear();
+            std::vector<unsigned int> vertexIndices;
+            std::vector<unsigned int> textureIndices;
+            std::vector<unsigned int> normalIndices;
             std::string vertex;
             while (linestream >> vertex) {
                  std::istringstream vertexStream(vertex);
@@ -153,29 +154,49 @@ CpuGeometry* AssetLoader::parseOBJ(const std::string& filePath, std::vector<std:
 
                 if (!v.empty()) {
                     int vIndex = std::stoi(v) - 1; // OBJ indices are 1-based
-                    f.vertexIndices.push_back(vIndex);
+                    vertexIndices.push_back(vIndex);
                 }
 
                 if (!vt.empty()) {
                     int tIndex = std::stoi(vt) - 1;
-                    f.textureIndices.push_back(tIndex);
+                    textureIndices.push_back(tIndex);
                 }
 
                 if (!vn.empty()) {
                     int nIndex = std::stoi(vn) - 1;
-                    f.normalIndices.push_back(nIndex);
+                    normalIndices.push_back(nIndex);
                 }
             }
-            if (f.vertexIndices.size() != 3 && f.vertexIndices.size() != 4) {
-                std::cerr << "unexpected read size: " << f.vertexIndices.size() << std::endl;
+            if (vertexIndices.size() != 3 && vertexIndices.size() != 4) {
+                std::cerr << "unexpected read size: " << vertexIndices.size() << std::endl;
             }
-            if (f.vertexIndices.size() == 4) {
-                Face f1 = Face(f.vertexIndices[0], f.vertexIndices[1], f.vertexIndices[2],f.normalIndices[0], f.normalIndices[1], f.normalIndices[2],f.textureIndices[0], f.textureIndices[1], f.textureIndices[2]);
-                Face f2  = Face(f.vertexIndices[0], f.vertexIndices[2], f.vertexIndices[3],f.normalIndices[0], f.normalIndices[2], f.normalIndices[3],f.textureIndices[0], f.textureIndices[2], f.textureIndices[3]);
+            if (vertexIndices.size() == 4) {
+                Face f1 = Face(vertexIndices[0], vertexIndices[1], vertexIndices[2]);
+                Face f2 = Face(vertexIndices[0], vertexIndices[2], vertexIndices[3]);
+                if (normalIndices.size() == 4) {
+                    f1.normalIndices = {normalIndices[0], normalIndices[1], normalIndices[2]};
+                    f2.normalIndices = {normalIndices[0], normalIndices[2], normalIndices[3]};
+                }
+                if (textureIndices.size() == 4) {
+                    f1.textureIndices = {textureIndices[0], textureIndices[1], textureIndices[2]};
+                    f2.textureIndices = {textureIndices[0], textureIndices[2], textureIndices[3]};
+                }
+
                 currentFaceMaterial.faces.push_back(f1);
                 currentFaceMaterial.faces.push_back(f2);
             } else {
-                currentFaceMaterial.faces.push_back(f);
+                Face f(vertexIndices[0], vertexIndices[1], vertexIndices[2]);
+                if (normalIndices.size() == 3) {
+                    f.normalIndices = {normalIndices[0], normalIndices[1], normalIndices[2]};
+                    f.validNm = true;
+                }
+
+                if (textureIndices.size() == 3) {
+                    f.textureIndices = {textureIndices[0], textureIndices[1], textureIndices[2]};
+                    f.validNm = true;
+                }
+
+                currentFaceMaterial.faces.emplace_back(std::move(f));
             }
 
         } else if (prefix == "usemtl") {

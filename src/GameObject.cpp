@@ -1,4 +1,5 @@
 #include "GameObject.h"
+#include "Scene.h"
 
 bool GameObject::isInFieldOfView(const glm::mat4& projectionViewMatrix) {
     std::shared_lock<std::shared_mutex> lock(positionMtx);
@@ -6,16 +7,15 @@ bool GameObject::isInFieldOfView(const glm::mat4& projectionViewMatrix) {
     return pos.x > -1.0f && pos.x < 1.0f && pos.y > -1.0f && pos.y < 1.0f;
 }
 
-void GameObject::move(glm::vec3& offset) {
+void GameObject::move(const glm::vec3& offset) {
     std::unique_lock<std::shared_mutex> lock(positionMtx);
     
     position += offset;
 }
 
-void GameObject::setPosition(glm::vec3& newPos) {
+void GameObject::setPosition(const glm::vec3& newPos) {
     std::unique_lock<std::shared_mutex> lock(positionMtx);
     position = newPos;
-
 }
 
 glm::vec3 GameObject::getPosition() {
@@ -23,31 +23,28 @@ glm::vec3 GameObject::getPosition() {
     return position;
 }
 
-void GameObject::draw(const glm::mat4& projectionViewMatrix) {
+void GameObject::draw(Camera* const camera) {
 
     // if (!isInFieldOfView(projectionViewMatrix)) return;
     
     shader->use();
     glBindVertexArray(objData->VAO);
     
-    glm::mat4 pvm = projectionViewMatrix * model;
+    glm::mat4 pvm = camera->getProjectionViewMatrix() * model;
     shader->setUniform("uMat", pvm);
     
-    glm::vec4 color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-    shader->setUniform("u_color", color);
     // bind textures, etc.
     for (const GpuGeometry& geom : objData->gpuGeometries) {
         if (geom.material) {
             // Set the diffuse and specular uniform variables
-            // glUniform3fv(diffuseUniformLocation, 1, glm::value_ptr(geom.material->diffuse));
-            // glUniform3fv(specularUniformLocation, 1, glm::value_ptr(geom.material->specular));
-            // glUniform1f(specularExUniformLocation, geom.material->specularEx);
-
+            shader->setUniform("uWorld", model);
             shader->setUniform("uWorldInverseTranspose", modelInverseTranspose);
+            shader->setUniform("uViewerWorldPosition", camera->getPosition());
 
             shader->setUniform("specColor", geom.material->specular);
             shader->setUniform("uShininess", geom.material->specularEx);
-            glm::vec3 abl(1.0f, 1.0f, 1.0f);
+            shader->setUniform("lightCutoff", 20.0f); /////// <--------------------------------
+            glm::vec3 abl(.75f, .75f, .75f); // hard code, move to map file
             shader->setUniform("ambientLight", abl);
             
             // Bind the texture
@@ -64,12 +61,15 @@ void GameObject::draw(const glm::mat4& projectionViewMatrix) {
 
         } else {
             shader->setUniform("uUseTexture", 0);
+            glm::vec4 color = glm::vec4(0.f, 1.f, 0.f, 1.0f);
+            shader->setUniform("u_color", color);
         }
 
         glDrawArrays(GL_TRIANGLES, geom.offset, geom.size);
         // maybe add dev only env var?
         for (GLenum error = glGetError(); error; error = glGetError()) {
-            std::cerr << "OpenGL Error at draw array (" << error << "): " << std::endl;
+            const auto s = objData->objectId;
+            std::cerr << "OpenGL Error in game object when trying to draw " << s << " at draw array (" << error << "): " << std::endl;
         }
     }
 }

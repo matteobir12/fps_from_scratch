@@ -36,6 +36,7 @@ public:
     const glm::mat4& getProjectionViewMatrix();
 
     void setPosition(const glm::vec3& newPosition);
+    glm::vec3 getPosition() const;
 
     void setFOV(float newFOV);
     void setAspectRatio(float newAspectRatio);

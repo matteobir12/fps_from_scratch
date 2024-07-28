@@ -28,18 +28,22 @@ void Scene::update(GLFWwindow* window) {
 }
 
 void Scene::render() {
-    drawBackground();
-    for (GameObject*& object : objects) {
-        
-        object->draw(camera->getProjectionViewMatrix());
+    for (GLenum error = glGetError(); error; error = glGetError()) {
+        std::cerr << "OpenGL Error at start? (" << error << "): " << std::endl;
     }
+    drawBackground();
+    setLightUniforms();
+    for (GameObject* object : objects) {
+        object->draw(camera);
+    }
+    drawPlayers();
     if (drawHud){
         HUD::Render();
     }
 }
 
-Scene::Scene(Camera* camera, const std::vector<GameObject*>& objects, ShaderProgram* backgroundProgram, GLuint backgroundTex) 
-: objects(objects), backgroundProgram(backgroundProgram), backgroundTex(backgroundTex), camera(camera) {
+Scene::Scene(Camera* camera, std::vector<GameObject*> objects, GameObject* player_model, ShaderProgram* backgroundProgram, GLuint backgroundTex) 
+: objects(std::move(objects)), player_model(player_model), backgroundProgram(backgroundProgram), backgroundTex(backgroundTex), camera(camera) {
     
     GLuint backVertexBuffer;
 
@@ -53,12 +57,19 @@ Scene::Scene(Camera* camera, const std::vector<GameObject*>& objects, ShaderProg
     glBufferData(GL_ARRAY_BUFFER, backgroundPositions.size() * sizeof(float), backgroundPositions.data(), GL_STATIC_DRAW);
 
     // Can abstract
-    GLuint backaPositionLocation = glGetAttribLocation(backgroundProgram->getID(), "aPosition");
+    if (backgroundProgram) {
+        GLuint backaPositionLocation = glGetAttribLocation(backgroundProgram->getID(), "aPosition");
 
-    glEnableVertexAttribArray(backaPositionLocation);
-    glVertexAttribPointer(backaPositionLocation, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(backaPositionLocation);
+        glVertexAttribPointer(backaPositionLocation, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-    backgroundProgram->setUniform("uSkybox", 0);
+        backgroundProgram->setUniform("uSkybox", 0);
+    }
+
+
+
+    // TEMP
+    sceneLights.emplace_back(glm::vec3(10,10,10), glm::vec3(), glm::vec3(1.0f, 0.f, 0.f), false, true);
  
 }
 
@@ -67,7 +78,7 @@ Scene::Scene(Camera* camera, const std::vector<GameObject*>& objects, ShaderProg
 // can cache matrix
 // probably only need depthfn call once
 void Scene::drawBackground() {
-    if (!backgroundProgram || !backgroundVao) return;
+    if (!backgroundProgram || !backgroundVao || !backgroundTex) return;
 
     backgroundProgram->use();
 
@@ -86,6 +97,53 @@ void Scene::drawBackground() {
     backgroundProgram->setUniform("uViewDirectionProjectionInverse", viewDirectionProjectionInverseMatrix);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    for (GLenum error = glGetError(); error; error = glGetError()) {
+        std::cerr << "OpenGL Error in game object when trying draw background " << " at draw array (" << error << "): " << std::endl;
+    }
+}
+
+// all sorts of caching and what not needs to happen here
+// only 3 lights because I'm an idiot, use vbos or something
+void Scene::setLightUniforms() {
+    if (!lightProgram)
+        return;
+    int lightCount = sceneLights.size();
+    glm::vec3 lightPosition[3];
+    glm::vec3 lightDirection[3];
+    glm::vec3 lightColor[3];
+    bool lightIsDirectional[3];
+    bool lightIsOn[3];
+    for(int i = 0; i < 3; ++i) {
+        if (i >= lightCount) {
+            lightIsOn[i] = false;
+            break;
+        }
+        lightPosition[i] = sceneLights[i].position;
+        lightDirection[i] = sceneLights[i].lightDirection;
+        lightColor[i] = sceneLights[i].lightColor;
+        lightIsDirectional[i] = sceneLights[i].lightIsDirectional;
+        lightIsOn[i] = sceneLights[i].lightIsOn;
+    }
+    lightProgram->use();
+    lightProgram->setUniform("uLightPosition", lightPosition, lightCount);
+    lightProgram->setUniform("uLightDirection", lightDirection, lightCount);
+    lightProgram->setUniform("uLightColor", lightColor, lightCount);
+    lightProgram->setUniform("uLightIsDirectional", lightIsDirectional, lightCount);
+    lightProgram->setUniform("uLightIsOn", lightIsOn, lightCount);
+
+    for (GLenum error = glGetError(); error; error = glGetError()) {
+        std::cerr << "OpenGL Error in game object when trying set lights " << " at draw array (" << error << "): " << std::endl;
+    }
+}
+
+void Scene::drawPlayers() {
+    if (player_model && server) {
+        server->FuncOnObjects([this] (const Networking::ClientToServerNetworkData d) {
+            player_model->setPosition(glm::vec3(d.outGoingPoint.x, d.outGoingPoint.y, d.outGoingPoint.z));
+            player_model->draw(camera);
+        });
+
+    }
 }
 
 std::vector<float> Scene::BackgroundPositions() {

@@ -6,27 +6,36 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
+
+#include "Networking/ServerThread.h"
 #include "Camera.h"
 #include "GameObject.h"
 #include "ShaderProgram.h"
+#include "GlobalSettings.h"
+
 
 class Scene {
     private:
         std::vector<GameObject*> objects;
+        GameObject* player_model = nullptr;
+        ServerThread* server = nullptr;
         ShaderProgram* backgroundProgram = nullptr;
+        ShaderProgram* lightProgram = nullptr;
         GLuint backgroundVao;
         GLuint backgroundTex;
         bool drawHud = true;
         // todo window class
         std::vector<float> BackgroundPositions();
-
+        void setLightUniforms();
+        
     public:
-        double lastX = 400, lastY = 300;
+        std::vector<Light> sceneLights{}; // change to faster fit lights
+        double lastX = GlobalSettings::WindowSettings::windowWidth / 2, lastY = GlobalSettings::WindowSettings::windowHeight / 2;
         Camera* camera;
         bool firstMouse = true;
 
-        Scene(Camera* camera, const std::vector<GameObject*>& objects) : objects(objects), camera(camera) {}
-        Scene(Camera* camera, const std::vector<GameObject*>& objects, ShaderProgram* backgroundProgram, GLuint backgroundTex);
+        Scene(Camera* camera, std::vector<GameObject*> objects) : objects(std::move(objects)), camera(camera) {}
+        Scene(Camera* camera, std::vector<GameObject*> objects, GameObject* player_model, ShaderProgram* backgroundProgram, GLuint backgroundTex);
 
         void update(GLFWwindow* window);
 
@@ -34,7 +43,17 @@ class Scene {
 
         void drawBackground();
 
-        static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+        void drawPlayers();
+
+        void setServerThread(ServerThread* thread) {
+            server = thread;
+        }
+
+        void setLightProgram(ShaderProgram* lp) {
+            lightProgram = lp;
+        }
+
+        static void key_callback(GLFWwindow* window, int key, int, int action, int mods) {
             Scene* myObject = static_cast<Scene*>(glfwGetWindowUserPointer(window));
             if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
                 glfwSetWindowShouldClose(window, GLFW_TRUE);

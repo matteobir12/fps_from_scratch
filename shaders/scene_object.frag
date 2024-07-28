@@ -14,7 +14,7 @@ uniform vec3 uLightColor[3]; // multiply the light's color with the diffuse and 
 uniform bool uLightIsDirectional[3];
 uniform bool uLightIsOn[3];
 uniform float uShininess;
-uniform float lightCuttoff;
+uniform float lightCutoff;
 uniform vec3 ambientLight;
 uniform vec3 specColor;
 uniform vec4 u_color;
@@ -28,8 +28,8 @@ void main() {
     if (uUseTexture){
         color = texture(uTexture,vTextCoord);
     }
-    vec3 diffuse;
-    vec3 specular;
+    vec3 diffuse = vec3(0.0);
+    vec3 specular = vec3(0.0);
     vec3 ambient = ambientLight * color.xyz;
 
     vec3 normal = normalize(vNormal);
@@ -43,12 +43,12 @@ void main() {
         vec3 halfVector = normalize(lightDirection + normalize(vSurfaceToViewer));
         if (uLightIsDirectional[i]) {
             float dp = dot(lightDirection, normalize(uLightDirection[i]));
-            if ( dp >= lightCuttoff) {
+            if ( dp >= lightCutoff) {
 
                 diffuse += max(dot(normal, normalize(uLightDirection[i])),0.0) * color.xyz;
                 float s =  max(dot(normal, halfVector),0.0);
                 float specIntense = pow(s, uShininess);
-                specular += s * specIntense  * specColor;
+                specular += s * specIntense * specColor * uLightColor[i];
     
             }
         }
@@ -57,7 +57,7 @@ void main() {
             diffuse += max(dot(normal, normalize(lightDirection)),0.0) * color.xyz;
             float s =  max(dot(normal, halfVector),0.0);
             float specIntense = pow(s, uShininess);
-            specular += s * specIntense  * specColor;
+            specular += s * specIntense * specColor * uLightColor[i];
         }
     }
     //outColor = vec4(normal,1.0);

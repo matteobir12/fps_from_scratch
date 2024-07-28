@@ -26,6 +26,7 @@ private:
 
     GLuint loadShader(const char* vertex_path, const char* fragment_path);
 
+    // definetly should be deleted
     std::string getExecutablePath();
 
     GLuint getNoLightShaderProgram() const;
@@ -43,8 +44,15 @@ public:
     GLuint getID() const;
     void setUniform(const std::string& name, float value);
     void setUniform(const std::string& name, int value);
-    void setUniform(const std::string& name, glm::mat4& value);
-    void setUniform(const std::string& name, glm::vec3& value);
-    void setUniform(const std::string& name, glm::vec4& value);
+    void setUniform(const std::string& name, const glm::vec3& value);
+    void setUniform(const std::string& name, const glm::vec3* values, int count);
+    void setUniform(const std::string& name, const glm::mat4& value);
+    void setUniform(const std::string& name, const glm::mat4* values, int count);
+    void setUniform(const std::string& name, const glm::vec4& value);
+    void setUniform(const std::string& name, const glm::vec4* values, int count);
+    void setUniform(const std::string& name, int * value, int count = 1);
+    void setUniform(const std::string& name, bool value);
+    void setUniform(const std::string& name, const bool* values, int count);
+    
 };
 #endif

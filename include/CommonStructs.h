@@ -3,39 +3,93 @@
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+
+#include <array>
 #include <vector>
 #include <string>
 #include <iostream>
 
+namespace Networking {
+constexpr std::size_t kSinglePacketSize = 1472;
+constexpr char kDelimiter = 0xFF;
+constexpr char kEscape = 0xFE;
+
+struct PacketHeader {
+    uint16_t type;
+    uint32_t length;
+};
+
+// Need to remain as POD
+struct NetworkPoint3D {
+    float x, y, z;
+};
+
+// Need to remain as POD
+struct NetworkOrientation {
+    float roll;
+    float pitch;
+    float yaw;
+};
+
+// All need to be POD. Can only Default init in C++20
+struct ClientToServerNetworkData {
+    NetworkPoint3D outGoingPoint;
+    NetworkOrientation outGoingOrientation;
+    bool shoot;
+};
+
+constexpr int kPlayerPacketDataSize = sizeof(ClientToServerNetworkData);
+
+struct RebuildingStruct {
+    char buffer[kPlayerPacketDataSize];
+    int valid_bits = 0;
+    uint8_t checksum = 0;
+};
+
+}
+
+namespace Rendering {
+
 struct Face {
-    std::vector<unsigned int> vertexIndices;
-    std::vector<unsigned int> textureIndices;
-    std::vector<unsigned int> normalIndices;
+    std::array<unsigned int, 3> vertexIndices;
+    std::array<unsigned int, 3> textureIndices;
+    std::array<unsigned int, 3> normalIndices;
+    bool validVt = false;
+    bool validTx = false;
+    bool validNm = false;
     Face() = default;
 
     Face(unsigned int x, unsigned int y, unsigned int z) {
-        vertexIndices.push_back(x);
-        vertexIndices.push_back(y);
-        vertexIndices.push_back(z);
+        vertexIndices[0] = x;
+        vertexIndices[1] = y;
+        vertexIndices[2] = z;
+        validVt = true;
     };
+
     Face(unsigned int x, unsigned int y, unsigned int z, unsigned int xn, unsigned int yn, unsigned int zn) {
-        vertexIndices.push_back(x);
-        vertexIndices.push_back(y);
-        vertexIndices.push_back(z);
-        normalIndices.push_back(xn);
-        normalIndices.push_back(yn);
-        normalIndices.push_back(zn);
+        vertexIndices[0] = x;
+        vertexIndices[1] = y;
+        vertexIndices[2] = z;
+        normalIndices[0] = xn;
+        normalIndices[1] = yn;
+        normalIndices[2] = zn;
+        validVt = true;
+        validNm = true;
     };
+
     Face(unsigned int x, unsigned int y, unsigned int z, unsigned int xn, unsigned int yn, unsigned int zn, unsigned int xt, unsigned int yt, unsigned int zt) {
-        vertexIndices.push_back(x);
-        vertexIndices.push_back(y);
-        vertexIndices.push_back(z);
-        normalIndices.push_back(xn);
-        normalIndices.push_back(yn);
-        normalIndices.push_back(zn);
-        textureIndices.push_back(xt);
-        textureIndices.push_back(yt);
-        textureIndices.push_back(zt);
+        vertexIndices[0] = x;
+        vertexIndices[1] = y;
+        vertexIndices[2] = z;
+        normalIndices[0] = xn;
+        normalIndices[1] = yn;
+        normalIndices[2] = zn;
+        textureIndices[0] = xt;
+        textureIndices[1] = yt;
+        textureIndices[2] = zt;
+        validVt = true;
+        validTx = true;
+        validNm = true;
     };
 };
 
@@ -118,11 +172,22 @@ struct GpuObject {
     }
 };
 
+struct GameObjectFlags {
+    bool usesLight = true;
+};
+
+struct PositionRotationScale {
+    glm::vec3 objectPosition = glm::vec3();
+    glm::vec3 objectRotation = glm::vec3();
+    glm::vec3 objectScale = glm::vec3(1.0f);
+};
+
 struct Point3D {
     float x, y, z;
 
     Point3D() : x(0), y(0), z(0) {}
     Point3D(float xCoord, float yCoord, float zCoord) : x(xCoord), y(yCoord), z(zCoord) {}
+    Networking::NetworkPoint3D ToNetworkPoint() { return {x, y, z}; }
 };
 
 struct AABB {
@@ -147,5 +212,26 @@ struct AABB {
                   << "Max: (" << max.x << ", " << max.y << ", " << max.z << ")\n";
     }
 };
+
+struct Light {
+    glm::vec3 position;
+    glm::vec3 lightDirection;
+    glm::vec3 lightColor;
+    bool lightIsDirectional;
+    bool lightIsOn;
+    Light(glm::vec3 position, glm::vec3 lightDirection, glm::vec3 lightColor, bool lightIsDirectional, bool lightIsOn) 
+    : position(position), lightDirection(lightDirection), lightColor(lightColor), lightIsDirectional(lightIsDirectional), lightIsOn(lightIsOn)
+    {};
+};
+
+struct Orientation {
+    float roll;
+    float pitch;
+    float yaw;
+
+    Networking::NetworkOrientation ToNetworkOrientation() { return {roll, pitch, yaw}; }
+};
+
+}
 
 #endif

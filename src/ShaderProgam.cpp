@@ -1,5 +1,5 @@
 #include "ShaderProgram.h"
-
+#include <vector>
 GLuint ShaderProgram::currentlyActiveShader = 0;
 
 std::string ShaderProgram::readFile(const char* filePath) {
@@ -133,18 +133,49 @@ GLuint ShaderProgram::getID() const {
 void ShaderProgram::setUniform(const std::string& name, float value) {
     glUniform1f(getUniformLocation(name), value);
 }
+
 void ShaderProgram::setUniform(const std::string& name, int value) {
     glUniform1i(getUniformLocation(name), value);
 }
-void ShaderProgram::setUniform(const std::string& name, glm::mat4& value) {
+
+void ShaderProgram::setUniform(const std::string& name, const glm::mat4& value) {
     glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, glm::value_ptr(value));
 }
-void ShaderProgram::setUniform(const std::string& name, glm::vec4& value) {
+
+void ShaderProgram::setUniform(const std::string& name, const glm::mat4* values, int count) {
+    glUniformMatrix4fv(getUniformLocation(name), count, GL_FALSE, glm::value_ptr(values[0]));
+}
+
+void ShaderProgram::setUniform(const std::string& name, const glm::vec4& value) {
     glUniform4fv(getUniformLocation(name), 1, glm::value_ptr(value));
 }
 
-void ShaderProgram::setUniform(const std::string& name, glm::vec3& value) {
+void ShaderProgram::setUniform(const std::string& name, const glm::vec4* values, int count) {
+    glUniform4fv(getUniformLocation(name), count, glm::value_ptr(values[0]));
+}
+
+void ShaderProgram::setUniform(const std::string& name, const glm::vec3& value) {
     glUniform3fv(getUniformLocation(name), 1, glm::value_ptr(value));
+}
+
+void ShaderProgram::setUniform(const std::string& name, const glm::vec3* values, int count) {
+    glUniform3fv(getUniformLocation(name), count, glm::value_ptr(values[0]));
+}
+
+void ShaderProgram::setUniform(const std::string& name, int * value, int count) {
+    glUniform1iv(getUniformLocation(name), count, value);
+}
+
+void ShaderProgram::setUniform(const std::string& name, bool value) {
+    glUniform1i(getUniformLocation(name), value ? GL_TRUE : GL_FALSE);
+}
+
+void ShaderProgram::setUniform(const std::string& name, const bool* values, int count) {
+    std::vector<GLint> intValues(count);
+    for (int i = 0; i < count; ++i) {
+        intValues[i] = values[i] ? GL_TRUE : GL_FALSE;
+    }
+    glUniform1iv(getUniformLocation(name), count, intValues.data());
 }
 
 ShaderProgram::~ShaderProgram() {

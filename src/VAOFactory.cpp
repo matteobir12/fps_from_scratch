@@ -3,7 +3,7 @@
 VAOFactory::Attribute::Attribute(GLuint idx, GLint sz, GLenum tp, GLsizei str, size_t off)
     : index(idx), size(sz), type(tp), stride(str), offset(off) {}
 
-GpuObject* VAOFactory::createVAO(CpuGeometry* cpuGeo, std::unordered_map<std::string, Material*>& materialLibs) {
+Rendering::GpuObject* VAOFactory::createVAO(Rendering::CpuGeometry* cpuGeo, std::unordered_map<std::string, Rendering::Material*>& materialLibs) {
     GLuint VAO, VBO;
 
     glGenVertexArrays(1, &VAO);
@@ -12,13 +12,13 @@ GpuObject* VAOFactory::createVAO(CpuGeometry* cpuGeo, std::unordered_map<std::st
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    GpuObject* gpuObjectPtr = new GpuObject{VAO, VBO};
+    Rendering::GpuObject* gpuObjectPtr = new Rendering::GpuObject{VAO, VBO};
     unsigned int offset = 0;
     std::vector<float> interleavedData; // potentially preallocate size
     gpuObjectPtr->hasNormals = cpuGeo->data.hasNormals;
     gpuObjectPtr->hasTexcoords = cpuGeo->data.hasTexcoords;
     for (const auto& fm : cpuGeo->data.FaceMaterials) {
-        GpuGeometry geo{};
+        Rendering::GpuGeometry geo{};
         geo.size = fm.faces.size() * 3;
         geo.offset = offset;
         offset += geo.size;
@@ -34,7 +34,7 @@ GpuObject* VAOFactory::createVAO(CpuGeometry* cpuGeo, std::unordered_map<std::st
             // }
             for (unsigned int i = 0; i < 3; i++) {
                 // Access the vertex using the index i
-                const Vertex& v = cpuGeo->data.vertices[face.vertexIndices[i]];
+                const Rendering::Vertex& v = cpuGeo->data.vertices[face.vertexIndices[i]];
                 interleavedData.push_back(v.x);
                 interleavedData.push_back(v.y);
                 interleavedData.push_back(v.z);
@@ -42,7 +42,7 @@ GpuObject* VAOFactory::createVAO(CpuGeometry* cpuGeo, std::unordered_map<std::st
                 
                 // normal
                 if (gpuObjectPtr->hasNormals) {
-                    const VertexNormal& vn = cpuGeo->data.normals[face.normalIndices[i]];
+                    const Rendering::VertexNormal& vn = cpuGeo->data.normals[face.normalIndices[i]];
                     interleavedData.push_back(vn.xn);
                     interleavedData.push_back(vn.yn);
                     interleavedData.push_back(vn.zn);
@@ -50,7 +50,7 @@ GpuObject* VAOFactory::createVAO(CpuGeometry* cpuGeo, std::unordered_map<std::st
 
                 // texture coord
                 if (gpuObjectPtr->hasTexcoords) {
-                    const TextureCoord& vt = cpuGeo->data.textures[face.textureIndices[i]];
+                    const Rendering::TextureCoord& vt = cpuGeo->data.textures[face.textureIndices[i]];
                     interleavedData.push_back(vt.u);
                     interleavedData.push_back(vt.v);
                 }

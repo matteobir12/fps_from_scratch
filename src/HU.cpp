@@ -28,7 +28,7 @@ void HUD::Render() {
         glBindTexture(GL_TEXTURE_2D, obj.texture);
         glDrawElements(GL_TRIANGLES, obj.size, GL_UNSIGNED_INT, 0);
         for (GLenum error = glGetError(); error; error = glGetError()) {
-            std::cerr << "OpenGL Error at draw array (" << error << "): " << std::endl;
+            std::cerr << "OpenGL Error in HUD at draw array (" << error << "): " << std::endl;
         }
     }
     glEnable(GL_DEPTH_TEST);

@@ -15,8 +15,11 @@
 #include <thread>
 #include <condition_variable>
 #include <unordered_map>
+
 #include "VAOFactory.h"
 #include "CommonStructs.h"
+
+using namespace Rendering;
 
 class AssetLoader {
 private:

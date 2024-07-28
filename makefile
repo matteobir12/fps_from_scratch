@@ -1,6 +1,6 @@
 CXX = g++ 
-CXXFLAGS = -Wall -Wextra 
-LDLIBS = lib/libglfw3.a -lgdi32 -luser32 -lglew32 -lopengl32
+CXXFLAGS = -Wall -Wextra -std=c++20
+LDLIBS = lib/libglfw3.a -lgdi32 -luser32 -lglew32 -lopengl32 -lws2_32
 
 TARGET = build/main.exe
 OBJDIR = build

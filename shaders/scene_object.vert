@@ -21,6 +21,6 @@ void main() {
 
     vNormal = mat3(uWorldInverseTranspose) * vertexNorm;
 
-    surfaceWorldPosition = mat3(uWorld) * aPosition;
+    surfaceWorldPosition = (uWorld * vec4(aPosition, 1.0)).xyz;
     vSurfaceToViewer = uViewerWorldPosition - surfaceWorldPosition;
 }

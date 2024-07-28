@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <iostream>
 #include <unordered_map>
+
 #include "CommonStructs.h"
 
 class VAOFactory {
@@ -22,7 +23,7 @@ public:
         Attribute() = default;
         Attribute(GLuint idx, GLint sz, GLenum tp, GLsizei str, size_t off);
     };
-    static GpuObject* createVAO(CpuGeometry*, std::unordered_map<std::string, Material*>& materialLibs);
+    static Rendering::GpuObject* createVAO(Rendering::CpuGeometry* cpuGeo, std::unordered_map<std::string, Rendering::Material*>& materialLibs);
 };
 
 #endif

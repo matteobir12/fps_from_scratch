@@ -2,7 +2,9 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <vector>
+
 #include "ShaderProgram.h"
+#include "SceneLoader.h"
 #include "Camera.h"
 #include "GameObject.h"
 #include "VAOFactory.h"
@@ -10,14 +12,15 @@
 #include "HUD.h"
 #include "AssetLoader.h"
 #include "CommonStructs.h"
+#include "GlobalSettings.h"
 
-void GLAPIENTRY MessageCallback( GLenum source,
+void GLAPIENTRY MessageCallback( GLenum,
                                  GLenum type,
                                  GLuint id,
                                  GLenum severity,
-                                 GLsizei length,
+                                 GLsizei,
                                  const GLchar* message,
-                                 const void* userParam ) {
+                                 const void* ) {
     if (id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
     std::cerr << "GL CALLBACK: " << (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "") 
             << " type = " << type << ", severity = " << severity 
@@ -26,11 +29,8 @@ void GLAPIENTRY MessageCallback( GLenum source,
 
 
 int main() { // int argc, char** argv
-    int HEIGHT = 800.0f;
-    int WIDTH = 1000.0f;
-    int FOV = 45;
     if (!glfwInit()) return -1;
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "My OpenGL Window", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(GlobalSettings::WindowSettings::windowWidth, GlobalSettings::WindowSettings::windowHeight, "My OpenGL Window", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -41,87 +41,19 @@ int main() { // int argc, char** argv
         std::cout << "goodbye world";
         return -1;
     }
-    std::vector<unsigned int> indices = {
-        // front face
-        0, 1, 2,
-        2, 3, 0,
-        // left face
-        0, 3, 4,
-        3, 7, 4,
-        // right face
-        1, 2, 4,
-        5, 6, 2,
-        // back face
-        4, 5, 6,
-        6, 7, 4,
-        // top face
-        2, 3, 7,
-        6, 7, 2,
-        // bottom
-        4, 5, 1,
-        1, 0, 4,
-    };
+    GlobalSettings::NetworkSettings::startNetworkService();
 
-       std::vector<std::string> faces{
-        "background/pos-x.jpg",
-        "background/neg-x.jpg",
-        "background/pos-y.jpg",
-        "background/neg-y.jpg",
-        "background/pos-z.jpg",
-        "background/neg-z.jpg"
-    };
-
-    GLuint cubemapTexture = AssetLoader::createCubeMap(faces);
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
 
     ShaderProgram* program = new ShaderProgram("../shaders/no_lighting.vert", "../shaders/no_lighting.frag");
     ShaderProgram* lightProgram = new ShaderProgram("../shaders/scene_object.vert", "../shaders/scene_object.frag");
     ShaderProgram* bp = new ShaderProgram("../shaders/background.vert", "../shaders/background.frag");
-    HUD::Initialize(WIDTH/HEIGHT, program);
-    // tmp cube stuff
-    std::string vaoid = "cube";
-    CpuGeometry* cpuCube = new CpuGeometry(vaoid);
-    // Front face
-    cpuCube->data.vertices.emplace_back(-0.5f, -0.5f,  0.5f); // Bottom Left
-    cpuCube->data.vertices.emplace_back(0.5f, -0.5f,  0.5f);// Bottom Right
-    cpuCube->data.vertices.emplace_back(0.5f,  0.5f,  0.5f); // Top Right
-    cpuCube->data.vertices.emplace_back(-0.5f,  0.5f,  0.5f); // Top Left
-    //back
-    cpuCube->data.vertices.emplace_back(-0.5f, -0.5f,  -0.5f); // Bottom Left
-    cpuCube->data.vertices.emplace_back(0.5f, -0.5f,  -0.5f); // Bottom Right
-    cpuCube->data.vertices.emplace_back(0.5f,  0.5f,  -0.5f); // Top Right
-    cpuCube->data.vertices.emplace_back(-0.5f,  0.5f,  -0.5f); // Top Left
-    FaceMaterial cubeFm{};
-    for (size_t i = 0; i < indices.size(); i+=3){
-        Face f(indices[i], indices[i+1], indices[i+2]);
-        cubeFm.faces.push_back(f);
-    }
-    cpuCube->data.FaceMaterials.push_back(cubeFm);
-    std::unordered_map<std::string, Material*> empty;
-    GpuObject* cubeObj = VAOFactory::createVAO(cpuCube, empty);
-    GameObject* object = new GameObject(program, cubeObj, glm::vec3(-10,10,-10),glm::vec3(1, 1, 1),glm::vec3(0, 0, 0));
-    GameObject* plane = new GameObject(program, cubeObj, glm::vec3(0,-6,0), glm::vec3(100, .1, 100), glm::vec3(0, 0, 0));
-    // end tmp
-    Camera* c = new Camera(glm::vec3(0,0,0), FOV, WIDTH/HEIGHT, glm::vec3(0,1,0), 0.0f, 0.0f);
+    HUD::Initialize(GlobalSettings::WindowSettings::aspectRatio, program);
 
-    GpuObject* treeObj = AssetLoader::loadObject("Tree");
-    GameObject* tree = new GameObject(lightProgram, treeObj, glm::vec3(10,10,10),glm::vec3(10, 10, 10),glm::vec3(0, 0, 0));
-
-    GpuObject* lptreeObj = AssetLoader::loadObject("low_poly_tree");
-    GameObject* lptree = new GameObject(lightProgram, lptreeObj, glm::vec3(-1,1,1),glm::vec3(3, 3, 3),glm::vec3(0, 0, 0));
-
-    GpuObject* catObj = AssetLoader::loadObject("cat");
-    GameObject* cat = new GameObject(lightProgram, catObj, glm::vec3(20,10,-10),glm::vec3(.5, .5, .5),glm::vec3(60, 0, 0));
-
-    std::vector<GameObject*> objs = { 
-        object,
-        plane,
-        tree,
-        lptree,
-        cat,
-     };
-    Scene s = Scene(c, objs, bp, cubemapTexture);
+    Scene s = SceneLoader::loadFromFile(GlobalSettings::AssetSettings::mapDir.string() + "test.mp", bp, lightProgram, program);
+    s.setLightProgram(lightProgram);
+    s.setServerThread(nullptr);
     glfwSetWindowUserPointer(window, &s);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {

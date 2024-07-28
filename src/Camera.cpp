@@ -12,6 +12,10 @@ void Camera::setPosition(const glm::vec3& newPosition) {
     updateViewMatrix();
 }
 
+glm::vec3 Camera::getPosition() const {
+    return position;
+}
+
 void Camera::setFOV(float newFOV) {
     fov = newFOV;
     updateProjectionMatrix();
